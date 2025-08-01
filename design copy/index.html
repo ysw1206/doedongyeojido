@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <title>당근마켓 스타일 홈</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- ✅ Tailwind CSS CDN import -->
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-black text-white font-sans">
+    <header class="flex justify-between items-center px-6 py-4 bg-black border-b border-gray-800">
+      <div class="text-xl font-bold text-orange-500">🥕 당근</div>
+      <button class="bg-orange-500 text-white px-4 py-2 rounded-md hover:bg-orange-600">
+        앱 다운로드
+      </button>
+    </header>
+
+    <main class="max-w-4xl mx-auto px-4 py-6 space-y-6">
+      <!-- 검색 영역 -->
+      <section class="flex flex-wrap gap-2 items-center">
+        <button class="px-3 py-2 border border-gray-600 rounded-md text-sm text-gray-300">봉담읍 ▼</button>
+        <button class="px-3 py-2 border border-gray-600 rounded-md text-sm text-gray-300">중고거래 ▼</button>
+        <input
+          type="text"
+          placeholder="검색어를 입력하세요"
+          class="flex-1 px-4 py-2 bg-gray-800 border border-gray-600 rounded-md text-sm text-white"
+        />
+        <button class="px-4 py-2 bg-gray-700 text-white rounded-md">검색</button>
+      </section>
+
+      <!-- 메인 문구 -->
+      <section>
+        <h1 class="text-2xl font-semibold">
+          봉담읍에서 자전거 찾고 계신가요?
+        </h1>
+      </section>
+
+      <!-- 인기 키워드 태그 -->
+      <section class="flex flex-wrap gap-2">
+        <span class="bg-gray-800 px-3 py-1 rounded-full text-sm text-gray-300">에어컨</span>
+        <span class="bg-gray-800 px-3 py-1 rounded-full text-sm text-gray-300">노트북</span>
+        <span class="bg-gray-800 px-3 py-1 rounded-full text-sm text-gray-300">이사</span>
+        <span class="bg-gray-800 px-3 py-1 rounded-full text-sm text-gray-300">투표</span>
+        <span class="bg-gray-800 px-3 py-1 rounded-full text-sm text-gray-300">중고차</span>
+      </section>
+
+      <!-- 카테고리 카드 -->
+      <section class="grid grid-cols-4 gap-4">
+        <div class="flex flex-col items-center p-4 bg-gray-900 border border-gray-700 rounded-lg">
+          <div class="text-3xl">📦</div>
+          <div class="text-sm mt-2 text-gray-300">중고거래</div>
+        </div>
+        <div class="flex flex-col items-center p-4 bg-gray-900 border border-gray-700 rounded-lg">
+          <div class="text-3xl">💼</div>
+          <div class="text-sm mt-2 text-gray-300">알바</div>
+        </div>
+        <div class="flex flex-col items-center p-4 bg-gray-900 border border-gray-700 rounded-lg">
+          <div class="text-3xl">🏠</div>
+          <div class="text-sm mt-2 text-gray-300">부동산</div>
+        </div>
+        <div class="flex flex-col items-center p-4 bg-gray-900 border border-gray-700 rounded-lg">
+          <div class="text-3xl">🚗</div>
+          <div class="text-sm mt-2 text-gray-300">중고차</div>
+        </div>
+      </section>
+
+      <!-- 지역 태그 -->
+      <section class="flex flex-wrap gap-2">
+        <span class="px-3 py-1 bg-gray-800 rounded-full text-sm text-gray-300">송도동</span>
+        <span class="px-3 py-1 bg-gray-800 rounded-full text-sm text-gray-300">역삼동</span>
+        <span class="px-3 py-1 bg-gray-800 rounded-full text-sm text-gray-300">봉담읍</span>
+        <span class="px-3 py-1 bg-gray-800 rounded-full text-sm text-gray-300">청담동</span>
+      </section>
+    </main>
+
+    <!-- Footer -->    
+
+    <!-- Section 2: 푸터 메뉴 -->
+    <footer class="bg-black py-16 px-6 lg:px-20 text-sm">
+      <div class="grid grid-cols-2 md:grid-cols-5 gap-8 mb-12">
+        <div>
+          <img src="https://upload.wikimedia.org/wikipedia/commons/6/61/Danggeun_Market_logo.png" alt="당근 로고" class="h-6 mb-4" />
+          <div class="flex gap-4">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/5/51/Facebook_f_logo_%282019%29.svg" alt="Facebook" class="h-5" />
+            <img src="https://upload.wikimedia.org/wikipedia/commons/e/e7/Instagram_logo_2016.svg" alt="Instagram" class="h-5" />
+            <img src="https://upload.wikimedia.org/wikipedia/commons/b/b8/YouTube_Logo_2017.svg" alt="YouTube" class="h-5" />
+          </div>
+        </div>
+
+        <div>
+          <h4 class="font-semibold mb-2">회사</h4>
+          <ul class="space-y-1 text-gray-400">
+            <li>회사 소개</li>
+            <li>당근페이</li>
+            <li>팀문화</li>
+            <li>서비스 소개</li>
+            <li>블로그</li>
+            <li>채용</li>
+          </ul>
+        </div>
+
+        <div>
+          <h4 class="font-semibold mb-2">탐색</h4>
+          <ul class="space-y-1 text-gray-400">
+            <li>중고거래</li>
+            <li>부동산</li>
+            <li>중고차</li>
+            <li>알바</li>
+            <li>동네업체</li>
+            <li>동네생활</li>
+            <li>모임</li>
+            <li>채팅하기</li>
+          </ul>
+        </div>
+
+        <div>
+          <h4 class="font-semibold mb-2">비즈니스</h4>
+          <ul class="space-y-1 text-gray-400">
+            <li>당근 비즈니스</li>
+            <li>제휴 문의</li>
+            <li>광고 문의</li>
+          </ul>
+        </div>
+
+        <div>
+          <h4 class="font-semibold mb-2">문의</h4>
+          <ul class="space-y-1 text-gray-400">
+            <li>IR</li>
+            <li>PR</li>
+            <li>고객센터</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="border-t border-gray-800 pt-8">
+        <div class="text-gray-400 mb-4">(주) 당근마켓</div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-xs text-gray-500">
+          <div>대표: 김용현, 황도연</div>
+          <div>사업자번호: 375-87-00088</div>
+          <div>직업정보제공사업 신고번호: J1200020200016</div>
+          <div>통신판매업 신고번호: 2021-서울서초-2875</div>
+          <div>호스팅 사업자: Amazon Web Service(AWS)</div>
+          <div>주소: 서울특별시 구로구 디지털로 300, 10층 (당근서비스)</div>
+          <div>전화: 1877-9737</div>
+          <div>고객문의: contact@daangn.com</div>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

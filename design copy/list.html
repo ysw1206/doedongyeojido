@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <title>봉담읍 중고거래</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-black text-white">
+    <!-- 헤더 -->
+    <header class="flex justify-between items-center px-6 py-4 bg-black border-b border-gray-800">
+      <div class="flex items-center gap-4">
+        <div class="text-orange-500 font-bold text-xl">🥕 당근</div>
+        <nav class="flex gap-4 text-sm text-gray-300">
+          <a href="#">중고거래</a>
+          <a href="#">부동산</a>
+          <a href="#">중고차</a>
+          <a href="#">알바</a>
+          <a href="#">동네업체</a>
+          <a href="#">동네생활</a>
+          <a href="#">모임</a>
+        </nav>
+      </div>
+      <button class="bg-orange-500 text-white px-4 py-2 rounded">앱 다운로드</button>
+    </header>
+
+    <!-- 검색 바 -->
+    <section class="bg-black border-b border-gray-700 px-6 py-4">
+      <div class="flex items-center gap-2">
+        <button class="px-3 py-2 border border-gray-600 rounded text-sm">봉담읍 ▼</button>
+        <input type="text" placeholder="검색어를 입력해주세요" class="flex-1 px-4 py-2 bg-gray-800 text-white rounded text-sm" />
+        <button class="px-4 py-2 bg-gray-700 rounded">→</button>
+      </div>
+      <div class="mt-3 text-sm text-gray-400 flex gap-2 flex-wrap">
+        <span>에어컨</span>
+        <span>자전거</span>
+        <span>아이폰</span>
+        <span>컴퓨터</span>
+        <span>냉장고</span>
+        <span>캠핑</span>
+        <span>포토카드</span>
+        <span>에어팟</span>
+        <span>버즈</span>
+        <span>노트북</span>
+        <span>의자</span>
+      </div>
+    </section>
+
+    <!-- 본문 -->
+    <main class="flex">
+      <!-- 필터 -->
+      <aside class="w-64 bg-black border-r border-gray-700 p-6 hidden md:block">
+        <h2 class="text-lg font-semibold mb-4">필터</h2>
+        <div class="mb-4">
+          <label class="flex items-center gap-2 text-sm">
+            <input type="checkbox" class="accent-orange-500" />
+            거래 가능만 보기
+          </label>
+        </div>
+        <div class="mb-4">
+          <h3 class="text-sm font-medium mb-1 text-gray-400">위치</h3>
+          <ul class="text-sm space-y-1">
+            <li><strong class="text-white">● 봉담읍</strong></li>
+            <li class="text-gray-400">○ 향남읍</li>
+            <li class="text-gray-400">○ 양감읍</li>
+            <li class="text-gray-400">○ 엄정동</li>
+            <li class="text-gray-400">○ 반송동</li>
+            <li class="text-gray-400">○ 동탄5동</li>
+          </ul>
+        </div>
+        <div>
+          <h3 class="text-sm font-medium mb-1 text-gray-400">카테고리</h3>
+          <ul class="text-sm space-y-1 text-gray-400">
+            <li>디지털기기</li>
+            <li>생활가전</li>
+            <li>가구/인테리어</li>
+            <li>생활/주방</li>
+            <li>유아동</li>
+          </ul>
+        </div>
+      </aside>
+
+      <!-- 상품 목록 -->
+      <section class="flex-1 p-6">
+        <h1 class="text-xl font-bold mb-6">경기도 화성시 봉담읍 중고거래</h1>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <!-- 아이템 카드 -->
+          <div class="bg-gray-900 p-2 rounded-md">
+            <img src="https://via.placeholder.com/300x200?text=HONEY+NEST" class="w-full rounded-md" />
+            <div class="mt-2 text-sm font-semibold">HONEY NEST 컴퓨터 의자</div>
+            <div class="text-sm text-gray-300">95,000원</div>
+            <div class="text-xs text-gray-500">봉담읍 · 50분 전</div>
+          </div>
+
+          <div class="bg-gray-900 p-2 rounded-md">
+            <img src="https://via.placeholder.com/300x200?text=%EB%8F%84%ED%99%94%EC%9E%90+%EC%8A%A4%ED%85%94%EC%8A%A4%ED%8C%90" class="w-full rounded-md" />
+            <div class="mt-2 text-sm font-semibold">도화자 스틸석쇠 세트</div>
+            <div class="text-sm text-gray-300">1,000원</div>
+            <div class="text-xs text-gray-500">봉담읍 · 51분 전</div>
+          </div>
+
+          <div class="bg-gray-900 p-2 rounded-md">
+            <img src="https://via.placeholder.com/300x200?text=%EB%B2%85%EA%B1%B0%EC%A7%80+%EB%AA%A8%EC%9E%90" class="w-full rounded-md" />
+            <div class="mt-2 text-sm font-semibold">벙거지 모자</div>
+            <div class="text-sm text-gray-300">15,000원</div>
+            <div class="text-xs text-gray-500">봉담읍 · 52분 전</div>
+          </div>
+
+          <div class="bg-gray-900 p-2 rounded-md">
+            <img src="https://via.placeholder.com/300x200?text=Cal+%EB%AA%A8%EC%9E%90" class="w-full rounded-md" />
+            <div class="mt-2 text-sm font-semibold">모자</div>
+            <div class="text-sm text-gray-300">20,000원</div>
+            <div class="text-xs text-gray-500">봉담읍 · 52분 전</div>
+          </div>
+
+          <div class="bg-gray-900 p-2 rounded-md">
+            <img src="https://via.placeholder.com/300x200?text=%EC%95%84%EC%9D%B4%ED%8C%A8%EB%93%9C" class="w-full rounded-md" />
+            <div class="mt-2 text-sm font-semibold">아이패드 9세대 64GB</div>
+            <div class="text-sm text-gray-300">350,000원</div>
+            <div class="text-xs text-gray-500">봉담읍 · 1시간 전</div>
+          </div>
+
+          <div class="bg-gray-900 p-2 rounded-md">
+            <img src="https://via.placeholder.com/300x200?text=%EC%97%90%EC%96%B4%EC%BB%A8" class="w-full rounded-md" />
+            <div class="mt-2 text-sm font-semibold">삼성 에어컨 1.5마력</div>
+            <div class="text-sm text-gray-300">180,000원</div>
+            <div class="text-xs text-gray-500">봉담읍 · 1시간 전</div>
+          </div>
+
+          <div class="bg-gray-900 p-2 rounded-md">
+            <img src="https://via.placeholder.com/300x200?text=%EC%9E%90%EC%A0%84%EA%B1%B0" class="w-full rounded-md" />
+            <div class="mt-2 text-sm font-semibold">자전거 MTB 26인치</div>
+            <div class="text-sm text-gray-300">80,000원</div>
+            <div class="text-xs text-gray-500">봉담읍 · 2시간 전</div>
+          </div>
+
+          <div class="bg-gray-900 p-2 rounded-md">
+            <img src="https://via.placeholder.com/300x200?text=%EB%85%B8%ED%8A%B8%EB%B6%81" class="w-full rounded-md" />
+            <div class="mt-2 text-sm font-semibold">맥북 프로 13인치</div>
+            <div class="text-sm text-gray-300">1,200,000원</div>
+            <div class="text-xs text-gray-500">봉담읍 · 2시간 전</div>
+          </div>
+
+          <div class="bg-gray-900 p-2 rounded-md">
+            <img src="https://via.placeholder.com/300x200?text=%EC%9D%98%EC%9E%90" class="w-full rounded-md" />
+            <div class="mt-2 text-sm font-semibold">책상 의자 세트</div>
+            <div class="text-sm text-gray-300">120,000원</div>
+            <div class="text-xs text-gray-500">봉담읍 · 3시간 전</div>
+          </div>
+
+          <div class="bg-gray-900 p-2 rounded-md">
+            <img src="https://via.placeholder.com/300x200?text=%EB%83%89%EC%9E%A5%EA%B3%A0" class="w-full rounded-md" />
+            <div class="mt-2 text-sm font-semibold">LG 냉장고 400L</div>
+            <div class="text-sm text-gray-300">250,000원</div>
+            <div class="text-xs text-gray-500">봉담읍 · 3시간 전</div>
+          </div>
+
+          <div class="bg-gray-900 p-2 rounded-md">
+            <img src="https://via.placeholder.com/300x200?text=%EC%BA%A0%ED%95%91" class="w-full rounded-md" />
+            <div class="mt-2 text-sm font-semibold">캠핑 텐트 4인용</div>
+            <div class="text-sm text-gray-300">150,000원</div>
+            <div class="text-xs text-gray-500">봉담읍 · 4시간 전</div>
+          </div>
+
+          <div class="bg-gray-900 p-2 rounded-md">
+            <img src="https://via.placeholder.com/300x200?text=%EC%97%90%EC%96%B4%ED%8C%9F" class="w-full rounded-md" />
+            <div class="mt-2 text-sm font-semibold">에어팟 프로 2세대</div>
+            <div class="text-sm text-gray-300">280,000원</div>
+            <div class="text-xs text-gray-500">봉담읍 · 4시간 전</div>
+          </div>
+
+          <div class="bg-gray-900 p-2 rounded-md">
+            <img src="https://via.placeholder.com/300x200?text=%EC%95%84%EC%9D%B4%ED%8F%B0" class="w-full rounded-md" />
+            <div class="mt-2 text-sm font-semibold">아이폰 14 128GB</div>
+            <div class="text-sm text-gray-300">750,000원</div>
+            <div class="text-xs text-gray-500">봉담읍 · 5시간 전</div>
+          </div>
+
+          <div class="bg-gray-900 p-2 rounded-md">
+            <img src="https://via.placeholder.com/300x200?text=%EC%BB%B4%ED%93%A8%ED%84%B0" class="w-full rounded-md" />
+            <div class="mt-2 text-sm font-semibold">게이밍 컴퓨터</div>
+            <div class="text-sm text-gray-300">800,000원</div>
+            <div class="text-xs text-gray-500">봉담읍 · 5시간 전</div>
+          </div>
+
+          <div class="bg-gray-900 p-2 rounded-md">
+            <img src="https://via.placeholder.com/300x200?text=%ED%8F%AC%ED%86%A0%EC%B9%B4%EB%93%9C" class="w-full rounded-md" />
+            <div class="mt-2 text-sm font-semibold">포토카드 모음</div>
+            <div class="text-sm text-gray-300">5,000원</div>
+            <div class="text-xs text-gray-500">봉담읍 · 6시간 전</div>
+          </div>
+
+          <div class="bg-gray-900 p-2 rounded-md">
+            <img src="https://via.placeholder.com/300x200?text=%EB%B2%84%EC%A6%88" class="w-full rounded-md" />
+            <div class="mt-2 text-sm font-semibold">갤럭시 버즈2</div>
+            <div class="text-sm text-gray-300">120,000원</div>
+            <div class="text-xs text-gray-500">봉담읍 · 6시간 전</div>
+          </div>
+
+          <div class="bg-gray-900 p-2 rounded-md">
+            <img src="https://via.placeholder.com/300x200?text=%EC%9D%98%EC%9E%90" class="w-full rounded-md" />
+            <div class="mt-2 text-sm font-semibold">의자 2개</div>
+            <div class="text-sm text-gray-300">30,000원</div>
+            <div class="text-xs text-gray-500">봉담읍 · 7시간 전</div>
+          </div>
+
+          <div class="bg-gray-900 p-2 rounded-md">
+            <img src="https://via.placeholder.com/300x200?text=%ED%94%8C%EB%A0%88%EC%9D%B4%EC%8A%A4%ED%85%8C%EC%9D%B4%EC%85%98" class="w-full rounded-md" />
+            <div class="mt-2 text-sm font-semibold">플스5 디지털 에디션</div>
+            <div class="text-sm text-gray-300">450,000원</div>
+            <div class="text-xs text-gray-500">봉담읍 · 7시간 전</div>
+          </div>
+
+          <div class="bg-gray-900 p-2 rounded-md">
+            <img src="https://via.placeholder.com/300x200?text=%EB%8B%8C%ED%85%90%EB%8F%84" class="w-full rounded-md" />
+            <div class="mt-2 text-sm font-semibold">닌텐도 스위치</div>
+            <div class="text-sm text-gray-300">250,000원</div>
+            <div class="text-xs text-gray-500">봉담읍 · 8시간 전</div>
+          </div>
+
+          <div class="bg-gray-900 p-2 rounded-md">
+            <img src="https://via.placeholder.com/300x200?text=%EC%9A%B4%EB%8F%99%ED%95%A0" class="w-full rounded-md" />
+            <div class="mt-2 text-sm font-semibold">운동할 때 입는 옷</div>
+            <div class="text-sm text-gray-300">25,000원</div>
+            <div class="text-xs text-gray-500">봉담읍 · 8시간 전</div>
+          </div>
+
+          <div class="bg-gray-900 p-2 rounded-md">
+            <img src="https://via.placeholder.com/300x200?text=%EC%B1%85" class="w-full rounded-md" />
+            <div class="mt-2 text-sm font-semibold">책 모음 (소설, 자기계발)</div>
+            <div class="text-sm text-gray-300">15,000원</div>
+            <div class="text-xs text-gray-500">봉담읍 · 9시간 전</div>
+          </div>
+
+          <div class="bg-gray-900 p-2 rounded-md">
+            <img src="https://via.placeholder.com/300x200?text=%EA%B0%80%EB%B0%A9" class="w-full rounded-md" />
+            <div class="mt-2 text-sm font-semibold">가방 (백팩, 크로스백)</div>
+            <div class="text-sm text-gray-300">35,000원</div>
+            <div class="text-xs text-gray-500">봉담읍 · 9시간 전</div>
+          </div>
+        </div>
+
+        <!-- 더보기 버튼 -->
+        <div class="mt-8 flex justify-center">
+          <button class="w-full max-w-5xl bg-[#3B3F4A] text-white text-xl font-semibold py-4 rounded-lg hover:bg-[#4A4F5A] transition-colors">
+            더보기
+          </button>
+        </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Footer -->
+    <!-- Section 1: 다운로드 유도 화면 -->
+    <section class="bg-[#3d2e27] text-white py-12 px-6 lg:px-20 flex flex-col lg:flex-row items-center justify-between">
+      <div class="mb-10 lg:mb-0 lg:w-1/2">
+        <h2 class="text-2xl lg:text-3xl font-bold mb-4 text-orange-500">당근에서 가까운 이웃과 함께해요.</h2>
+        <p class="text-3xl lg:text-4xl font-bold mb-6">지금 바로 다운로드하기</p>
+        <div class="flex gap-4">
+          <img src="https://upload.wikimedia.org/wikipedia/commons/5/5f/Apple_App_Store_badge_KO.svg" alt="App Store" class="h-12">
+          <img src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_KO.svg" alt="Google Play" class="h-12">
+        </div>
+      </div>
+      <div class="lg:w-1/2">
+        <img src="merged-top.png" alt="앱 미리보기 이미지" class="max-w-full rounded-xl shadow-lg" />
+      </div>
+    </section>
+
+    <!-- Section 2: 푸터 메뉴 -->
+    <footer class="bg-black py-16 px-6 lg:px-20 text-sm">
+      <div class="grid grid-cols-2 md:grid-cols-5 gap-8 mb-12">
+        <div>
+          <img src="https://upload.wikimedia.org/wikipedia/commons/6/61/Danggeun_Market_logo.png" alt="당근 로고" class="h-6 mb-4" />
+          <div class="flex gap-4">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/5/51/Facebook_f_logo_%282019%29.svg" alt="Facebook" class="h-5" />
+            <img src="https://upload.wikimedia.org/wikipedia/commons/e/e7/Instagram_logo_2016.svg" alt="Instagram" class="h-5" />
+            <img src="https://upload.wikimedia.org/wikipedia/commons/b/b8/YouTube_Logo_2017.svg" alt="YouTube" class="h-5" />
+          </div>
+        </div>
+
+        <div>
+          <h4 class="font-semibold mb-2">회사</h4>
+          <ul class="space-y-1 text-gray-400">
+            <li>회사 소개</li>
+            <li>당근페이</li>
+            <li>팀문화</li>
+            <li>서비스 소개</li>
+            <li>블로그</li>
+            <li>채용</li>
+          </ul>
+        </div>
+
+        <div>
+          <h4 class="font-semibold mb-2">탐색</h4>
+          <ul class="space-y-1 text-gray-400">
+            <li>중고거래</li>
+            <li>부동산</li>
+            <li>중고차</li>
+            <li>알바</li>
+            <li>동네업체</li>
+            <li>동네생활</li>
+            <li>모임</li>
+            <li>채팅하기</li>
+          </ul>
+        </div>
+
+        <div>
+          <h4 class="font-semibold mb-2">비즈니스</h4>
+          <ul class="space-y-1 text-gray-400">
+            <li>당근 비즈니스</li>
+            <li>제휴 문의</li>
+            <li>광고 문의</li>
+          </ul>
+        </div>
+
+        <div>
+          <h4 class="font-semibold mb-2">문의</h4>
+          <ul class="space-y-1 text-gray-400">
+            <li>IR</li>
+            <li>PR</li>
+            <li>고객센터</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="border-t border-gray-800 pt-8">
+        <div class="text-gray-400 mb-4">(주) 당근마켓</div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-xs text-gray-500">
+          <div>대표: 김용현, 황도연</div>
+          <div>사업자번호: 375-87-00088</div>
+          <div>직업정보제공사업 신고번호: J1200020200016</div>
+          <div>통신판매업 신고번호: 2021-서울서초-2875</div>
+          <div>호스팅 사업자: Amazon Web Service(AWS)</div>
+          <div>주소: 서울특별시 구로구 디지털로 300, 10층 (당근서비스)</div>
+          <div>전화: 1877-9737</div>
+          <div>고객문의: contact@daangn.com</div>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

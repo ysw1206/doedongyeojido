@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <title>인기 중고차 게시글</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-black text-white p-8">
+    <div class="max-w-screen-xl mx-auto">
+      <div class="flex justify-between items-center mb-6">
+        <h1 class="text-xl font-bold">인기 중고차 게시글</h1>
+        <a href="#" class="text-orange-400 text-sm">더 구경하기 &gt;</a>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        <!-- 중고차 카드 (예시) -->
+        <div class="bg-zinc-900 rounded-lg overflow-hidden">
+          <img src="https://i.ytimg.com/vi/Mc5fnhvIM88/hqdefault.jpg" alt="LF 쏘나타" class="w-full h-48 object-cover" />
+          <div class="p-4 space-y-1">
+            <div class="text-sm text-gray-300">LF 쏘나타 LPi 2.0 택시 FWD 스타일</div>
+            <div class="text-lg font-bold text-white">320만원</div>
+            <div class="text-xs text-gray-400">15년식 · 37.9만km</div>
+            <div class="flex flex-wrap gap-1 mt-1">
+              <span class="bg-gray-700 text-xs px-2 py-0.5 rounded">급매 차량</span>
+            </div>
+            <div class="text-xs text-gray-500 mt-1">당진시 · 1시간 전</div>
+            <div class="text-xs text-gray-500 mt-1 flex items-center gap-3">
+              <span>💬 4</span>
+              <span>❤️ 7</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ⚠️ 나머지 차량도 동일한 구조로 복제 가능 -->
+        <!-- 예: 이미지, 모델명, 가격, 연식/주행거리, 태그, 위치/시간, 댓글/찜 수만 바꾸면 됨 -->
+
+      </div>
+    </div>
+  </body>
+</html>

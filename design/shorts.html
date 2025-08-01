@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>돼동여지도 - Shorts</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* 숏츠 스타일링 */
+        .shorts-container {
+            height: calc(100vh - 200px);
+            overflow-y: scroll;
+            scroll-snap-type: y mandatory;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .shorts-video {
+            height: calc(100vh - 200px);
+            scroll-snap-align: start;
+            position: relative;
+            width: 100%;
+            max-width: 400px; /* 모바일에서 적절한 너비 */
+            flex-shrink: 0; /* 축소 방지 */
+        }
+        
+        .video-player {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .interaction-buttons {
+            position: absolute;
+            right: 16px;
+            bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            z-index: 10;
+        }
+        
+        .interaction-button {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            color: white;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+        }
+        
+        .interaction-icon {
+            width: 40px;
+            height: 40px;
+            background: rgba(0,0,0,0.6);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(10px);
+        }
+        
+        .interaction-text {
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .video-info {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 80px; /* 상호작용 버튼 공간 확보 */
+            padding: 20px;
+            background: linear-gradient(transparent, rgba(0,0,0,0.8));
+            color: white;
+        }
+        
+        .channel-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+        
+        .channel-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #333;
+        }
+        
+        .channel-name {
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        .subscribe-button {
+            background: #ff0000;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .video-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+        
+        .video-description {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-bottom: 8px;
+        }
+        
+        .video-tags {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        
+        .video-tag {
+            background: rgba(255,255,255,0.2);
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+        }
+        
+        /* 네비게이션 화살표 */
+        .navigation-arrows {
+            position: fixed;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 15;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        
+        .nav-arrow {
+            width: 40px;
+            height: 40px;
+            background: rgba(0,0,0,0.6);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            backdrop-filter: blur(10px);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-arrow:hover {
+            background: rgba(0,0,0,0.8);
+            transform: scale(1.1);
+        }
+        
+        .nav-arrow:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body class="bg-black">
+    <!-- 헤더 -->
+    <header class="flex justify-between items-center px-6 py-4 bg-black border-b border-gray-800">
+        <div class="flex items-center gap-4">
+            <div class="flex items-center gap-2">
+                <!-- 돼동여지도 로고 (꿀꿀이 탐험가 마스코트) -->
+                <div class="relative">
+                    <div class="w-8 h-8 bg-gradient-to-br from-pink-300 to-pink-400 rounded-full flex items-center justify-center">
+                        <span class="text-white text-lg font-bold">🐷</span>
+                    </div>
+                    <div class="absolute -top-1 -right-1 w-4 h-4 bg-yellow-400 rounded-full flex items-center justify-center">
+                        <span class="text-xs">🔍</span>
+                    </div>
+                </div>
+                <span class="text-pink-300 font-bold text-xl tracking-wide">돼동여지도</span>
+            </div>
+            <!-- 데스크톱 네비게이션 -->
+            <nav class="hidden md:flex gap-4 text-sm text-gray-300 items-center">
+                <a href="/" class="text-white">홈</a>
+                <a href="/map" class="hover:text-white">지도</a>
+                <a href="/favorites" class="hover:text-white">찜</a>
+                <a href="/history" class="hover:text-white">방문기록</a>
+            </nav>
+        </div>
+        <div class="flex items-center gap-4">
+            <!-- 지역 설정 버튼 -->
+            <button class="flex items-center gap-2 bg-gradient-to-r from-pink-400 to-pink-500 text-white px-3 py-2 rounded-lg hover:from-pink-500 hover:to-pink-600 transition-all duration-200 shadow-md">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                </svg>
+                <span class="hidden sm:inline">강남구</span>
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                </svg>
+            </button>
+            <!-- 지도 토글 버튼 -->
+            <button class="flex items-center gap-2 bg-gradient-to-r from-pink-400 to-pink-500 text-white px-3 py-2 rounded-lg hover:from-pink-500 hover:to-pink-600 transition-all duration-200 shadow-md">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                </svg>
+                <span class="hidden sm:inline">목록</span>
+            </button>
+            <!-- 모바일 햄버거 메뉴 버튼 -->
+            <button class="md:hidden text-gray-300 hover:text-white">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                </svg>
+            </button>
+            <!-- 데스크톱 검색 버튼 -->
+            <button class="hidden md:block text-gray-300 hover:text-white">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                </svg>
+            </button>
+            <!-- 데스크톱 알림 버튼 -->
+            <button class="hidden md:block text-gray-300 hover:text-white">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-5 5v-5z"></path>
+                </svg>
+            </button>
+            <!-- 데스크톱 프로필 -->
+            <div class="hidden md:block w-8 h-8 bg-gray-700 rounded-full"></div>
+        </div>
+    </header>
+
+    <!-- 검색 섹션 -->
+    <div class="px-6 py-4 bg-black border-b border-gray-800">
+        <div class="flex items-center gap-2">
+            <div class="flex-1 relative">
+                <input type="text" placeholder="맛집, 메뉴, 유튜버 검색" class="w-full px-4 py-2 bg-gray-800 text-white rounded-full text-sm pl-10 focus:outline-none focus:ring-2 focus:ring-pink-500" />
+                <svg class="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                </svg>
+            </div>
+            <button class="p-2 bg-gray-800 rounded-full hover:bg-gray-700 transition-colors">
+                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path>
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <!-- 카테고리 필터 -->
+    <div class="px-6 py-3 bg-black border-b border-gray-800">
+        <!-- 데스크톱: 가로 스크롤 -->
+        <div class="hidden md:flex gap-2 whitespace-nowrap overflow-x-auto">
+            <button class="px-3 py-1 bg-gradient-to-r from-pink-300 to-pink-400 text-white rounded-full text-sm font-medium shadow-sm">전체</button>
+            <button class="px-3 py-1 bg-gray-800 text-white rounded-full text-sm hover:bg-pink-600 hover:shadow-md transition-all duration-200">한식</button>
+            <button class="px-3 py-1 bg-gray-800 text-white rounded-full text-sm hover:bg-pink-600 hover:shadow-md transition-all duration-200">중식</button>
+            <button class="px-3 py-1 bg-gray-800 text-white rounded-full text-sm hover:bg-pink-600 hover:shadow-md transition-all duration-200">일식</button>
+            <button class="px-3 py-1 bg-gray-800 text-white rounded-full text-sm hover:bg-pink-600 hover:shadow-md transition-all duration-200">양식</button>
+            <button class="px-3 py-1 bg-gray-800 text-white rounded-full text-sm hover:bg-pink-600 hover:shadow-md transition-all duration-200">디저트</button>
+            <button class="px-3 py-1 bg-gray-800 text-white rounded-full text-sm hover:bg-pink-600 hover:shadow-md transition-all duration-200">카페</button>
+            <button class="px-3 py-1 bg-gray-800 text-white rounded-full text-sm hover:bg-pink-600 hover:shadow-md transition-all duration-200">술집</button>
+            <button class="px-3 py-1 bg-gray-800 text-white rounded-full text-sm hover:bg-pink-600 hover:shadow-md transition-all duration-200">강남</button>
+            <button class="px-3 py-1 bg-gray-800 text-white rounded-full text-sm hover:bg-pink-600 hover:shadow-md transition-all duration-200">홍대</button>
+            <button class="px-3 py-1 bg-gray-800 text-white rounded-full text-sm hover:bg-pink-600 hover:shadow-md transition-all duration-200">신촌</button>
+        </div>
+        
+        <!-- 모바일: 그리드 레이아웃 -->
+        <div class="md:hidden grid grid-cols-4 gap-2">
+            <button class="px-2 py-1 bg-gradient-to-r from-pink-300 to-pink-400 text-white rounded-full text-xs font-medium shadow-sm">전체</button>
+            <button class="px-2 py-1 bg-gray-800 text-white rounded-full text-xs hover:bg-pink-600 hover:shadow-md transition-all duration-200">한식</button>
+            <button class="px-2 py-1 bg-gray-800 text-white rounded-full text-xs hover:bg-pink-600 hover:shadow-md transition-all duration-200">중식</button>
+            <button class="px-2 py-1 bg-gray-800 text-white rounded-full text-xs hover:bg-pink-600 hover:shadow-md transition-all duration-200">일식</button>
+            <button class="px-2 py-1 bg-gray-800 text-white rounded-full text-xs hover:bg-pink-600 hover:shadow-md transition-all duration-200">양식</button>
+            <button class="px-2 py-1 bg-gray-800 text-white rounded-full text-xs hover:bg-pink-600 hover:shadow-md transition-all duration-200">디저트</button>
+            <button class="px-2 py-1 bg-gray-800 text-white rounded-full text-xs hover:bg-pink-600 hover:shadow-md transition-all duration-200">카페</button>
+            <button class="px-2 py-1 bg-gray-800 text-white rounded-full text-xs hover:bg-pink-600 hover:shadow-md transition-all duration-200">술집</button>
+            <button class="px-2 py-1 bg-gray-800 text-white rounded-full text-xs hover:bg-pink-600 hover:shadow-md transition-all duration-200">강남</button>
+            <button class="px-2 py-1 bg-gray-800 text-white rounded-full text-xs hover:bg-pink-600 hover:shadow-md transition-all duration-200">홍대</button>
+            <button class="px-2 py-1 bg-gray-800 text-white rounded-full text-xs hover:bg-pink-600 hover:shadow-md transition-all duration-200">신촌</button>
+        </div>
+    </div>
+
+    <!-- 네비게이션 화살표 -->
+    <div class="navigation-arrows">
+        <button class="nav-arrow" id="prevBtn">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path>
+            </svg>
+        </button>
+        <button class="nav-arrow" id="nextBtn">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+            </svg>
+        </button>
+    </div>
+
+    <!-- 본문 -->
+    <main class="flex">
+        <!-- 사이드바 (데스크톱) -->
+        <aside class="w-64 bg-black border-r border-gray-800 p-6 hidden xl:block">
+            <div class="space-y-6">
+                <!-- 위치 필터 -->
+                <div>
+                    <h3 class="text-sm font-medium text-gray-400 mb-3">지역</h3>
+                    <div class="space-y-2">
+                        <label class="flex items-center gap-2 text-sm">
+                            <input type="radio" name="location" class="accent-pink-400" checked />
+                            <span class="text-white">● 강남구</span>
+                        </label>
+                        <label class="flex items-center gap-2 text-sm">
+                            <input type="radio" name="location" class="accent-pink-400" />
+                            <span class="text-gray-400">○ 마포구</span>
+                        </label>
+                        <label class="flex items-center gap-2 text-sm">
+                            <input type="radio" name="location" class="accent-pink-400" />
+                            <span class="text-gray-400">○ 서대문구</span>
+                        </label>
+                        <label class="flex items-center gap-2 text-sm">
+                            <input type="radio" name="location" class="accent-pink-400" />
+                            <span class="text-gray-400">○ 종로구</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- 유튜버 방문수 필터 -->
+                <div>
+                    <h3 class="text-sm font-medium text-gray-400 mb-3">유튜버 방문수</h3>
+                    <div class="space-y-2">
+                        <label class="flex items-center gap-2 text-sm">
+                            <input type="checkbox" class="accent-pink-400" />
+                            <span class="text-gray-300">1명 이상</span>
+                        </label>
+                        <label class="flex items-center gap-2 text-sm">
+                            <input type="checkbox" class="accent-pink-400" checked />
+                            <span class="text-gray-300">3명 이상</span>
+                        </label>
+                        <label class="flex items-center gap-2 text-sm">
+                            <input type="checkbox" class="accent-pink-400" />
+                            <span class="text-gray-300">5명 이상</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- 찜 목록 -->
+                <div>
+                    <h3 class="text-sm font-medium text-gray-400 mb-3">내 찜</h3>
+                    <div class="text-sm text-gray-400">
+                        찜한 맛집이 없습니다
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- 숏츠 컨테이너 -->
+        <div class="flex-1">
+            <div class="shorts-container" id="shortsContainer">
+        <!-- 숏츠 1 -->
+        <div class="shorts-video">
+            <video class="video-player" autoplay muted loop playsinline>
+                <source src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" type="video/mp4">
+            </video>
+            
+            <!-- 상호작용 버튼 -->
+            <div class="interaction-buttons">
+                <div class="interaction-button">
+                    <div class="interaction-icon">
+                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                        </svg>
+                    </div>
+                    <span class="interaction-text">12.5K</span>
+                </div>
+                
+                <div class="interaction-button">
+                    <div class="interaction-icon">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                        </svg>
+                    </div>
+                    <span class="interaction-text">1.2K</span>
+                </div>
+                
+                <div class="interaction-button">
+                    <div class="interaction-icon">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z"></path>
+                        </svg>
+                    </div>
+                    <span class="interaction-text">Share</span>
+                </div>
+                
+                <div class="interaction-button">
+                    <div class="interaction-icon">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                        </svg>
+                    </div>
+                    <span class="interaction-text">Save</span>
+                </div>
+            </div>
+            
+            <!-- 비디오 정보 -->
+            <div class="video-info">
+                <div class="channel-info">
+                    <div class="channel-avatar"></div>
+                    <div>
+                        <div class="channel-name">@맛집탐험가</div>
+                        <button class="subscribe-button">Subscribe</button>
+                    </div>
+                </div>
+                <div class="video-title">강남 맛집 숏츠! 30초 만에 보는 맛집</div>
+                <div class="video-description">강남역 근처 숨겨진 맛집들을 소개합니다 🍜</div>
+                <div class="video-tags">
+                    <span class="video-tag">#강남맛집</span>
+                    <span class="video-tag">#한식</span>
+                    <span class="video-tag">#맛집추천</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 숏츠 2 -->
+        <div class="shorts-video">
+            <video class="video-player" autoplay muted loop playsinline>
+                <source src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4" type="video/mp4">
+            </video>
+            
+            <!-- 상호작용 버튼 -->
+            <div class="interaction-buttons">
+                <div class="interaction-button">
+                    <div class="interaction-icon">
+                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                        </svg>
+                    </div>
+                    <span class="interaction-text">8.2K</span>
+                </div>
+                
+                <div class="interaction-button">
+                    <div class="interaction-icon">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                        </svg>
+                    </div>
+                    <span class="interaction-text">856</span>
+                </div>
+                
+                <div class="interaction-button">
+                    <div class="interaction-icon">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z"></path>
+                        </svg>
+                    </div>
+                    <span class="interaction-text">Share</span>
+                </div>
+                
+                <div class="interaction-button">
+                    <div class="interaction-icon">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                        </svg>
+                    </div>
+                    <span class="interaction-text">Save</span>
+                </div>
+            </div>
+            
+            <!-- 비디오 정보 -->
+            <div class="video-info">
+                <div class="channel-info">
+                    <div class="channel-avatar"></div>
+                    <div>
+                        <div class="channel-name">@디저트러버</div>
+                        <button class="subscribe-button">Subscribe</button>
+                    </div>
+                </div>
+                <div class="video-title">홍대 디저트 숏츠! 인스타 감성 카페</div>
+                <div class="video-description">홍대에서 찾은 예쁜 디저트 카페들 🍰</div>
+                <div class="video-tags">
+                    <span class="video-tag">#홍대카페</span>
+                    <span class="video-tag">#디저트</span>
+                    <span class="video-tag">#인스타감성</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 숏츠 3 -->
+        <div class="shorts-video">
+            <video class="video-player" autoplay muted loop>
+                <source src="https://sample-videos.com/zip/10/mp4/SampleVideo_1280x720_5mb.mp4" type="video/mp4">
+            </video>
+            
+            <!-- 상호작용 버튼 -->
+            <div class="interaction-buttons">
+                <div class="interaction-button">
+                    <div class="interaction-icon">
+                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                        </svg>
+                    </div>
+                    <span class="interaction-text">5.7K</span>
+                </div>
+                
+                <div class="interaction-button">
+                    <div class="interaction-icon">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                        </svg>
+                    </div>
+                    <span class="interaction-text">432</span>
+                </div>
+                
+                <div class="interaction-button">
+                    <div class="interaction-icon">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z"></path>
+                        </svg>
+                    </div>
+                    <span class="interaction-text">Share</span>
+                </div>
+                
+                <div class="interaction-button">
+                    <div class="interaction-icon">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                        </svg>
+                    </div>
+                    <span class="interaction-text">Save</span>
+                </div>
+            </div>
+            
+            <!-- 비디오 정보 -->
+            <div class="video-info">
+                <div class="channel-info">
+                    <div class="channel-avatar"></div>
+                    <div>
+                        <div class="channel-name">@술집탐험가</div>
+                        <button class="subscribe-button">Subscribe</button>
+                    </div>
+                </div>
+                <div class="video-title">신촌 술집 숏츠! 대학생 추천 맛집</div>
+                <div class="video-description">신촌에서 대학생들이 추천하는 술집들 🍺</div>
+                <div class="video-tags">
+                    <span class="video-tag">#신촌술집</span>
+                    <span class="video-tag">#대학생맛집</span>
+                    <span class="video-tag">#술집추천</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 숏츠 4 -->
+        <div class="shorts-video">
+            <video class="video-player" autoplay muted loop>
+                <source src="https://sample-videos.com/zip/10/mp4/SampleVideo_1280x720_1mb.mp4" type="video/mp4">
+            </video>
+            
+            <!-- 상호작용 버튼 -->
+            <div class="interaction-buttons">
+                <div class="interaction-button">
+                    <div class="interaction-icon">
+                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                        </svg>
+                    </div>
+                    <span class="interaction-text">15.3K</span>
+                </div>
+                
+                <div class="interaction-button">
+                    <div class="interaction-icon">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                        </svg>
+                    </div>
+                    <span class="interaction-text">2.1K</span>
+                </div>
+                
+                <div class="interaction-button">
+                    <div class="interaction-icon">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z"></path>
+                        </svg>
+                    </div>
+                    <span class="interaction-text">Share</span>
+                </div>
+                
+                <div class="interaction-button">
+                    <div class="interaction-icon">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                        </svg>
+                    </div>
+                    <span class="interaction-text">Save</span>
+                </div>
+            </div>
+            
+            <!-- 비디오 정보 -->
+            <div class="video-info">
+                <div class="channel-info">
+                    <div class="channel-avatar"></div>
+                    <div>
+                        <div class="channel-name">@한식마스터</div>
+                        <button class="subscribe-button">Subscribe</button>
+                    </div>
+                </div>
+                <div class="video-title">종로 한식 숏츠! 전통 한정식</div>
+                <div class="video-description">종로에서 즐기는 전통 한정식 🍚</div>
+                <div class="video-tags">
+                    <span class="video-tag">#종로한식</span>
+                    <span class="video-tag">#한정식</span>
+                    <span class="video-tag">#전통음식</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 숏츠 5 -->
+        <div class="shorts-video">
+            <video class="video-player" autoplay muted loop>
+                <source src="https://sample-videos.com/zip/10/mp4/SampleVideo_1280x720_2mb.mp4" type="video/mp4">
+            </video>
+            
+            <!-- 상호작용 버튼 -->
+            <div class="interaction-buttons">
+                <div class="interaction-button">
+                    <div class="interaction-icon">
+                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                        </svg>
+                    </div>
+                    <span class="interaction-text">9.1K</span>
+                </div>
+                
+                <div class="interaction-button">
+                    <div class="interaction-icon">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                        </svg>
+                    </div>
+                    <span class="interaction-text">1.5K</span>
+                </div>
+                
+                <div class="interaction-button">
+                    <div class="interaction-icon">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z"></path>
+                        </svg>
+                    </div>
+                    <span class="interaction-text">Share</span>
+                </div>
+                
+                <div class="interaction-button">
+                    <div class="interaction-icon">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                        </svg>
+                    </div>
+                    <span class="interaction-text">Save</span>
+                </div>
+            </div>
+            
+            <!-- 비디오 정보 -->
+            <div class="video-info">
+                <div class="channel-info">
+                    <div class="channel-avatar"></div>
+                    <div>
+                        <div class="channel-name">@양식러버</div>
+                        <button class="subscribe-button">Subscribe</button>
+                    </div>
+                </div>
+                <div class="video-title">이태원 양식 숏츠! 분위기 좋은 레스토랑</div>
+                <div class="video-description">이태원에서 즐기는 분위기 좋은 양식 🍝</div>
+                <div class="video-tags">
+                    <span class="video-tag">#이태원양식</span>
+                    <span class="video-tag">#레스토랑</span>
+                    <span class="video-tag">#분위기좋은</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 숏츠 네비게이션 기능
+        const container = document.getElementById('shortsContainer');
+        const videos = document.querySelectorAll('.shorts-video');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        
+        let currentIndex = 0;
+        const totalVideos = videos.length;
+
+        // 화살표 버튼 상태 업데이트
+        function updateArrowButtons() {
+            prevBtn.disabled = currentIndex === 0;
+            nextBtn.disabled = currentIndex === totalVideos - 1;
+        }
+
+        // 특정 인덱스로 스크롤
+        function scrollToIndex(index) {
+            if (index >= 0 && index < totalVideos) {
+                const targetVideo = videos[index];
+                targetVideo.scrollIntoView({ behavior: 'smooth' });
+                currentIndex = index;
+                updateArrowButtons();
+            }
+        }
+
+        // 이전 비디오로 이동
+        prevBtn.addEventListener('click', () => {
+            if (currentIndex > 0) {
+                scrollToIndex(currentIndex - 1);
+            }
+        });
+
+        // 다음 비디오로 이동
+        nextBtn.addEventListener('click', () => {
+            if (currentIndex < totalVideos - 1) {
+                scrollToIndex(currentIndex + 1);
+            }
+        });
+
+        // 스크롤 이벤트로 현재 인덱스 추적
+        container.addEventListener('scroll', () => {
+            const scrollTop = container.scrollTop;
+            const videoHeight = container.clientHeight;
+            const newIndex = Math.round(scrollTop / videoHeight);
+            
+            if (newIndex !== currentIndex && newIndex >= 0 && newIndex < totalVideos) {
+                currentIndex = newIndex;
+                updateArrowButtons();
+            }
+        });
+
+        // 키보드 네비게이션
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+                e.preventDefault();
+                if (currentIndex > 0) {
+                    scrollToIndex(currentIndex - 1);
+                }
+            } else if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
+                e.preventDefault();
+                if (currentIndex < totalVideos - 1) {
+                    scrollToIndex(currentIndex + 1);
+                }
+            }
+        });
+
+        // 비디오 자동 재생/일시정지
+        const observerOptions = {
+            root: container,
+            rootMargin: '0px',
+            threshold: 0.5
+        };
+
+        const videoObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                const video = entry.target;
+                if (entry.isIntersecting) {
+                    video.play();
+                } else {
+                    video.pause();
+                }
+            });
+        }, observerOptions);
+
+        // 모든 비디오 관찰 시작
+        videos.forEach(video => {
+            const videoElement = video.querySelector('video');
+            if (videoElement) {
+                videoObserver.observe(videoElement);
+            }
+        });
+
+        // 상호작용 버튼 클릭 이벤트
+        document.querySelectorAll('.interaction-button').forEach(button => {
+            button.addEventListener('click', function() {
+                const icon = this.querySelector('svg');
+                const text = this.querySelector('.interaction-text');
+                
+                // 좋아요 버튼 토글
+                if (icon.getAttribute('fill') === 'currentColor') {
+                    icon.style.fill = 'none';
+                    icon.style.stroke = 'currentColor';
+                    icon.style.strokeWidth = '2';
+                    text.textContent = parseInt(text.textContent) + 1 + 'K';
+                } else {
+                    icon.style.fill = 'currentColor';
+                    icon.style.stroke = 'none';
+                    text.textContent = parseInt(text.textContent) - 1 + 'K';
+                }
+            });
+        });
+
+        // 구독 버튼 클릭 이벤트
+        document.querySelectorAll('.subscribe-button').forEach(button => {
+            button.addEventListener('click', function() {
+                if (this.textContent === 'Subscribe') {
+                    this.textContent = 'Subscribed';
+                    this.style.background = '#606060';
+                } else {
+                    this.textContent = 'Subscribe';
+                    this.style.background = '#ff0000';
+                }
+            });
+        });
+
+        // 초기 화살표 버튼 상태 설정
+        updateArrowButtons();
+    </script>
+</body>
+</html> 

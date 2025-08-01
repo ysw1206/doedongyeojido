@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <title>강남역 맛집! 1인분도 가능한 이자카야 추천 - 맛집지도</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-black text-white">
+    <!-- 헤더 -->
+    <header class="flex justify-between items-center px-6 py-4 bg-black border-b border-gray-800">
+      <div class="flex items-center gap-4">
+        <div class="text-red-500 font-bold text-xl">🍽️ 맛집지도</div>
+        <nav class="flex gap-4 text-sm text-gray-300">
+          <a href="#" class="text-white">홈</a>
+          <a href="#" class="hover:text-white">지도</a>
+          <a href="#" class="hover:text-white">찜</a>
+          <a href="#" class="hover:text-white">방문기록</a>
+        </nav>
+      </div>
+      <div class="flex items-center gap-4">
+        <button class="text-gray-300 hover:text-white">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+          </svg>
+        </button>
+        <button class="text-gray-300 hover:text-white">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-5 5v-5z"></path>
+          </svg>
+        </button>
+        <div class="w-8 h-8 bg-gray-700 rounded-full"></div>
+      </div>
+    </header>
+
+    <!-- 브레드크럼 -->
+    <div class="px-6 py-3 border-b border-gray-800">
+      <nav class="text-sm text-gray-400">
+        <a href="#" class="hover:text-white">홈</a>
+        <span class="mx-2">></span>
+        <a href="#" class="hover:text-white">일식</a>
+        <span class="mx-2">></span>
+        <span class="text-white">강남역 맛집! 1인분도 가능한 이자카야 추천</span>
+      </nav>
+    </div>
+
+    <!-- 메인 콘텐츠 -->
+    <main class="flex flex-col lg:flex-row">
+      <!-- 왼쪽 영상/이미지 영역 (고정) -->
+      <div class="w-full lg:w-1/2 lg:sticky lg:top-0 lg:h-screen">
+        <div class="p-6">
+          <div class="relative">
+            <!-- 유튜브 영상 임베드 -->
+            <div class="relative w-full aspect-video bg-gray-800 rounded-lg overflow-hidden">
+              <iframe 
+                src="https://www.youtube.com/embed/8jLOx1hD3_o" 
+                class="w-full h-full"
+                frameborder="0" 
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                allowfullscreen>
+              </iframe>
+            </div>
+            <div class="absolute bottom-4 right-4 bg-black bg-opacity-70 text-white text-sm px-3 py-1 rounded">
+              12:34
+            </div>
+          </div>
+          
+          <!-- 유튜버 정보 (왼쪽 영상 아래) -->
+          <div class="mt-6">
+            <div class="flex items-center gap-3">
+              <div class="w-12 h-12 bg-red-600 rounded-full flex items-center justify-center">
+                <span class="text-white font-bold text-lg">김</span>
+              </div>
+              <div class="flex-1">
+                <div class="text-white font-medium">먹방유튜버 김철수</div>
+                <div class="text-sm text-gray-400">구독자 45.2만명</div>
+              </div>
+              <button class="bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-red-700">
+                구독
+              </button>
+            </div>
+          </div>
+
+          <!-- 맛집 이미지 갤러리 -->
+          <div class="mt-6">
+            <h3 class="text-lg font-semibold text-white mb-3">맛집 사진</h3>
+            <div class="grid grid-cols-3 gap-2">
+              <img src="https://via.placeholder.com/150x100?text=맛집+사진+1" alt="맛집 사진" class="w-full h-20 object-cover rounded" />
+              <img src="https://via.placeholder.com/150x100?text=맛집+사진+2" alt="맛집 사진" class="w-full h-20 object-cover rounded" />
+              <img src="https://via.placeholder.com/150x100?text=맛집+사진+3" alt="맛집 사진" class="w-full h-20 object-cover rounded" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 오른쪽 정보 영역 (스크롤 가능) -->
+      <div class="w-full lg:w-1/2">
+        <div class="p-6 space-y-6">
+        <!-- 맛집 제목 및 상태 -->
+        <div>
+          <div class="inline-block bg-red-500 text-white text-xs px-2 py-1 rounded mb-2">유튜버 3명 방문</div>
+          <h1 class="text-2xl font-bold text-white mb-2">서울 강남 맛집 투어! 현지인이 추천하는 숨겨진 맛집들</h1>
+          <p class="text-sm text-gray-400">2주 전 업로드</p>
+        </div>
+
+        <!-- 주요 정보 바 -->
+        <div class="flex bg-gray-800 rounded-lg p-4">
+          <div class="flex-1 text-center border-r border-gray-600">
+            <div class="text-2xl font-bold text-white">12.5만</div>
+            <div class="text-xs text-gray-400">조회수</div>
+          </div>
+          <div class="flex-1 text-center border-r border-gray-600">
+            <div class="text-lg font-semibold text-white">일식</div>
+            <div class="text-xs text-gray-400">카테고리</div>
+          </div>
+          <div class="flex-1 text-center">
+            <div class="text-lg font-semibold text-white">강남구</div>
+            <div class="text-xs text-gray-400">지역</div>
+          </div>
+        </div>
+
+        <!-- 맛집 정보 -->
+        <div>
+          <h2 class="text-lg font-semibold text-white mb-3">맛집 정보</h2>
+          <div class="space-y-2 text-sm">
+            <div class="flex justify-between">
+              <span class="text-gray-400">매장명</span>
+              <span class="text-white">강남 숨겨진 맛집 모음</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-gray-400">주소</span>
+              <span class="text-white">서울 강남구 강남대로 일대</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-gray-400">전화번호</span>
+              <span class="text-white">02-1234-5678</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-gray-400">영업시간</span>
+              <span class="text-white">매장별 상이</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-gray-400">예약가능</span>
+              <span class="text-green-400">예약 가능</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 상세 정보 -->
+        <div>
+          <h2 class="text-lg font-semibold text-white mb-3">상세 정보</h2>
+          <div class="space-y-2 text-sm">
+            <div class="flex justify-between">
+              <span class="text-gray-400">평균 가격</span>
+              <span class="text-white">15,000원 ~ 50,000원</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-gray-400">주차</span>
+              <span class="text-white">매장별 상이</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-gray-400">분위기</span>
+              <span class="text-white">데이트, 회식, 혼술, 가족</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-gray-400">대표메뉴</span>
+              <span class="text-white">다양한 한식, 일식, 양식</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 추가 옵션 -->
+        <div>
+          <h2 class="text-lg font-semibold text-white mb-3">특징</h2>
+          <div class="flex gap-2 flex-wrap">
+            <span class="bg-gray-700 text-white text-sm px-3 py-1 rounded-full">현지인 추천</span>
+            <span class="bg-gray-700 text-white text-sm px-3 py-1 rounded-full">숨겨진 맛집</span>
+            <span class="bg-gray-700 text-white text-sm px-3 py-1 rounded-full">데이트 코스</span>
+            <span class="bg-gray-700 text-white text-sm px-3 py-1 rounded-full">가성비 좋음</span>
+          </div>
+        </div>
+
+        <!-- 상세 내용 -->
+        <div>
+          <h2 class="text-lg font-semibold text-white mb-3">유튜버 후기</h2>
+          <div class="text-sm text-white leading-relaxed">
+            강남역 근처에 숨겨진 진짜 이자카야를 발견했습니다!<br>
+            1인분도 가능해서 혼자 가기 좋고, 사케 종류도 정말 다양해요.<br>
+            특히 스키야키가 정말 맛있었는데, 육수가 진하고 고기도 신선했어요.<br>
+            분위기도 일본 현지 느낌이 나서 데이트하기도 좋을 것 같아요!
+          </div>
+        </div>
+
+        <!-- 활동 정보 -->
+        <div>
+          <div class="text-sm text-gray-400">
+            조회수 12.5만회 • 좋아요 2.3천개 • 댓글 156개
+          </div>
+        </div>
+
+        <!-- 지도 -->
+        <div>
+          <div class="bg-gray-800 rounded-lg p-4">
+            <div class="relative h-48 bg-gray-700 rounded-lg mb-3">
+              <div class="absolute inset-0 flex items-center justify-center text-gray-400">
+                <div class="text-center">
+                  <svg class="w-12 h-12 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                  </svg>
+                  <p>지도 로딩 중...</p>
+                </div>
+              </div>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-sm text-white">서울 강남구 강남대로 123</span>
+              <button class="text-sm text-gray-400 hover:text-white">복사 📋</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 액션 버튼들 -->
+        <div class="space-y-3">
+          <button class="w-full bg-red-600 text-white py-3 rounded-lg font-semibold hover:bg-red-700">
+            ❤️ 찜하기
+          </button>
+          <button class="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700">
+            📍 지도에서 보기
+          </button>
+          <button class="w-full bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700">
+            📞 예약하기
+          </button>
+        </div>
+      </div>
+    </div>
+    </main>
+
+    <!-- 유튜버 방문 기록 -->
+    <section class="max-w-7xl mx-auto px-6 py-8">
+      <div class="flex justify-between items-center mb-6">
+        <h2 class="text-xl font-bold text-white">방문한 유튜버들</h2>
+        <a href="#" class="text-red-400 text-sm">더 보기 &gt;</a>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <!-- 유튜버 카드 1 -->
+        <div class="bg-gray-900 rounded-lg p-4">
+          <div class="flex items-center gap-3 mb-3">
+            <div class="w-10 h-10 bg-red-600 rounded-full flex items-center justify-center">
+              <span class="text-white font-bold">김</span>
+            </div>
+            <div>
+              <div class="text-white font-medium">먹방유튜버 김철수</div>
+              <div class="text-xs text-gray-400">구독자 45.2만명</div>
+            </div>
+          </div>
+          <div class="text-sm text-gray-300 mb-2">"1인분도 가능해서 혼자 가기 좋아요!"</div>
+          <div class="text-xs text-gray-500">2주 전 방문</div>
+        </div>
+
+        <!-- 유튜버 카드 2 -->
+        <div class="bg-gray-900 rounded-lg p-4">
+          <div class="flex items-center gap-3 mb-3">
+            <div class="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center">
+              <span class="text-white font-bold">이</span>
+            </div>
+            <div>
+              <div class="text-white font-medium">맛집탐방 이영희</div>
+              <div class="text-xs text-gray-400">구독자 32.1만명</div>
+            </div>
+          </div>
+          <div class="text-sm text-gray-300 mb-2">"사케 종류가 정말 다양해요!"</div>
+          <div class="text-xs text-gray-500">1개월 전 방문</div>
+        </div>
+
+        <!-- 유튜버 카드 3 -->
+        <div class="bg-gray-900 rounded-lg p-4">
+          <div class="flex items-center gap-3 mb-3">
+            <div class="w-10 h-10 bg-green-600 rounded-full flex items-center justify-center">
+              <span class="text-white font-bold">박</span>
+            </div>
+            <div>
+              <div class="text-white font-medium">혼술맛집 박민수</div>
+              <div class="text-xs text-gray-400">구독자 18.7만명</div>
+            </div>
+          </div>
+          <div class="text-sm text-gray-300 mb-2">"혼술하기 정말 좋은 곳이에요!"</div>
+          <div class="text-xs text-gray-500">3개월 전 방문</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 관련 맛집 추천 -->
+    <section class="max-w-screen-xl mx-auto px-6 py-8">
+      <div class="flex justify-between items-center mb-6">
+        <h1 class="text-xl font-bold text-white">이런 맛집도 있어요</h1>
+        <a href="#" class="text-red-400 text-sm">더 구경하기 &gt;</a>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        <!-- 맛집 카드 1 -->
+        <div class="bg-gray-900 rounded-lg overflow-hidden cursor-pointer hover:bg-gray-800 transition-colors">
+          <div class="relative">
+            <img src="https://via.placeholder.com/320x180?text=맛집+추천+1" alt="맛집" class="w-full aspect-video object-cover" />
+            <div class="absolute bottom-2 right-2 bg-black bg-opacity-80 text-white text-xs px-1 py-0.5 rounded">
+              8:45
+            </div>
+          </div>
+          <div class="p-3">
+            <h3 class="text-sm font-medium text-white mb-1 line-clamp-2">홍대 숨겨진 이자카야! 현지인만 아는 맛집</h3>
+            <p class="text-xs text-gray-400 mb-1">맛집탐방 이영희</p>
+            <div class="flex items-center gap-2 text-xs text-gray-500">
+              <span>조회수 8.2만회</span>
+              <span>•</span>
+              <span>1주 전</span>
+            </div>
+            <div class="flex items-center gap-1 mt-2">
+              <span class="text-xs bg-red-500 text-white px-2 py-0.5 rounded">유튜버 2명 방문</span>
+              <span class="text-xs bg-gray-700 text-gray-300 px-2 py-0.5 rounded">일식</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 맛집 카드 2 -->
+        <div class="bg-gray-900 rounded-lg overflow-hidden cursor-pointer hover:bg-gray-800 transition-colors">
+          <div class="relative">
+            <img src="https://via.placeholder.com/320x180?text=맛집+추천+2" alt="맛집" class="w-full aspect-video object-cover" />
+            <div class="absolute bottom-2 right-2 bg-black bg-opacity-80 text-white text-xs px-1 py-0.5 rounded">
+              10:15
+            </div>
+          </div>
+          <div class="p-3">
+            <h3 class="text-sm font-medium text-white mb-1 line-clamp-2">신촌 혼술 맛집! 대학생들이 추천하는 술집</h3>
+            <p class="text-xs text-gray-400 mb-1">혼술맛집 박민수</p>
+            <div class="flex items-center gap-2 text-xs text-gray-500">
+              <span>조회수 5.7만회</span>
+              <span>•</span>
+              <span>3일 전</span>
+            </div>
+            <div class="flex items-center gap-1 mt-2">
+              <span class="text-xs bg-red-500 text-white px-2 py-0.5 rounded">유튜버 4명 방문</span>
+              <span class="text-xs bg-gray-700 text-gray-300 px-2 py-0.5 rounded">술집</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 맛집 카드 3 -->
+        <div class="bg-gray-900 rounded-lg overflow-hidden cursor-pointer hover:bg-gray-800 transition-colors">
+          <div class="relative">
+            <img src="https://via.placeholder.com/320x180?text=맛집+추천+3" alt="맛집" class="w-full aspect-video object-cover" />
+            <div class="absolute bottom-2 right-2 bg-black bg-opacity-80 text-white text-xs px-1 py-0.5 rounded">
+              12:30
+            </div>
+          </div>
+          <div class="p-3">
+            <h3 class="text-sm font-medium text-white mb-1 line-clamp-2">종로 전통 한식! 한옥에서 즐기는 한정식</h3>
+            <p class="text-xs text-gray-400 mb-1">한식맛집 최지영</p>
+            <div class="flex items-center gap-2 text-xs text-gray-500">
+              <span>조회수 15.3만회</span>
+              <span>•</span>
+              <span>1주 전</span>
+            </div>
+            <div class="flex items-center gap-1 mt-2">
+              <span class="text-xs bg-red-500 text-white px-2 py-0.5 rounded">유튜버 7명 방문</span>
+              <span class="text-xs bg-gray-700 text-gray-300 px-2 py-0.5 rounded">한식</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 맛집 카드 4 -->
+        <div class="bg-gray-900 rounded-lg overflow-hidden cursor-pointer hover:bg-gray-800 transition-colors">
+          <div class="relative">
+            <img src="https://via.placeholder.com/320x180?text=맛집+추천+4" alt="맛집" class="w-full aspect-video object-cover" />
+            <div class="absolute bottom-2 right-2 bg-black bg-opacity-80 text-white text-xs px-1 py-0.5 rounded">
+              6:42
+            </div>
+          </div>
+          <div class="p-3">
+            <h3 class="text-sm font-medium text-white mb-1 line-clamp-2">마포구 중식 맛집! 진짜 중국인이 운영하는 짜장면</h3>
+            <p class="text-xs text-gray-400 mb-1">중식맛집 김동현</p>
+            <div class="flex items-center gap-2 text-xs text-gray-500">
+              <span>조회수 9.1만회</span>
+              <span>•</span>
+              <span>5일 전</span>
+            </div>
+            <div class="flex items-center gap-1 mt-2">
+              <span class="text-xs bg-red-500 text-white px-2 py-0.5 rounded">유튜버 4명 방문</span>
+              <span class="text-xs bg-gray-700 text-gray-300 px-2 py-0.5 rounded">중식</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 앱 다운로드 유도 섹션 -->
+    <section class="bg-[#3d2e27] text-white py-12 px-6 lg:px-20 flex flex-col lg:flex-row items-center justify-between">
+      <div class="mb-10 lg:mb-0 lg:w-1/2">
+        <h2 class="text-2xl lg:text-3xl font-bold mb-4 text-orange-500">유튜브 맛집을 실제로 방문해보세요.</h2>
+        <p class="text-3xl lg:text-4xl font-bold mb-6">지금 바로 다운로드하기</p>
+        <div class="flex gap-4">
+          <img src="https://upload.wikimedia.org/wikipedia/commons/5/5f/Apple_App_Store_badge_KO.svg" alt="App Store" class="h-12">
+          <img src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_KO.svg" alt="Google Play" class="h-12">
+        </div>
+      </div>
+      <div class="lg:w-1/2">
+        <img src="merged-top.png" alt="앱 미리보기 이미지" class="max-w-full rounded-xl shadow-lg" />
+      </div>
+    </section>
+
+    <!-- 푸터 -->
+    <footer class="bg-black py-16 px-6 lg:px-20 text-sm">
+      <div class="grid grid-cols-2 md:grid-cols-5 gap-8 mb-12">
+        <div>
+          <img src="https://upload.wikimedia.org/wikipedia/commons/6/61/Danggeun_Market_logo.png" alt="맛집지도 로고" class="h-6 mb-4" />
+          <div class="flex gap-4">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/5/51/Facebook_f_logo_%282019%29.svg" alt="Facebook" class="h-5" />
+            <img src="https://upload.wikimedia.org/wikipedia/commons/e/e7/Instagram_logo_2016.svg" alt="Instagram" class="h-5" />
+            <img src="https://upload.wikimedia.org/wikipedia/commons/b/b8/YouTube_Logo_2017.svg" alt="YouTube" class="h-5" />
+          </div>
+        </div>
+
+        <div>
+          <h4 class="font-semibold mb-2">회사</h4>
+          <ul class="space-y-1 text-gray-400">
+            <li>회사 소개</li>
+            <li>서비스 소개</li>
+            <li>팀문화</li>
+            <li>블로그</li>
+            <li>채용</li>
+          </ul>
+        </div>
+
+        <div>
+          <h4 class="font-semibold mb-2">탐색</h4>
+          <ul class="space-y-1 text-gray-400">
+            <li>맛집 지도</li>
+            <li>유튜버 맛집</li>
+            <li>지역별 맛집</li>
+            <li>메뉴별 맛집</li>
+            <li>찜한 맛집</li>
+          </ul>
+        </div>
+
+        <div>
+          <h4 class="font-semibold mb-2">비즈니스</h4>
+          <ul class="space-y-1 text-gray-400">
+            <li>맛집 등록</li>
+            <li>유튜버 캠페인</li>
+            <li>광고 문의</li>
+          </ul>
+        </div>
+
+        <div>
+          <h4 class="font-semibold mb-2">문의</h4>
+          <ul class="space-y-1 text-gray-400">
+            <li>고객센터</li>
+            <li>오류 제보</li>
+            <li>문의하기</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="border-t border-gray-800 pt-8">
+        <div class="text-gray-400 mb-4">(주) 맛집지도</div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-xs text-gray-500">
+          <div>대표: 김맛집</div>
+          <div>사업자번호: 123-45-67890</div>
+          <div>주소: 서울특별시 강남구 테헤란로 123</div>
+          <div>전화: 02-1234-5678</div>
+          <div>고객문의: contact@matzipmap.com</div>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

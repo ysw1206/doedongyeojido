@@ -1,0 +1,1889 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <title>맛집 지도 - 유튜브 맛집 영상 기반</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&libraries=places"></script>
+    <style>
+      /* 스크롤바 숨기기 */
+      ::-webkit-scrollbar {
+        display: none;
+      }
+      
+      /* Firefox용 스크롤바 숨기기 */
+      html {
+        scrollbar-width: none;
+      }
+      
+      .line-clamp-2 {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+    </style>
+  </head>
+  <body class="bg-black text-white">
+    <!-- 헤더 -->
+    <header class="fixed top-0 left-0 right-0 z-50 flex justify-between items-center px-6 py-4 bg-black border-b border-gray-800">
+      <div class="flex items-center gap-4">
+        <div class="flex items-center gap-2">
+          <!-- 돼동여지도 로고 (꿀꿀이 탐험가 마스코트) -->
+          <div class="relative">
+            <div class="w-8 h-8 bg-gradient-to-br from-pink-300 to-pink-400 rounded-full flex items-center justify-center">
+              <span class="text-white text-lg font-bold">🐷</span>
+            </div>
+            <div class="absolute -top-1 -right-1 w-4 h-4 bg-yellow-400 rounded-full flex items-center justify-center">
+              <span class="text-xs">🔍</span>
+            </div>
+          </div>
+          <span class="text-pink-300 font-bold text-xl tracking-wide">돼동여지도</span>
+        </div>
+        <!-- 데스크톱 네비게이션 -->
+        <nav class="hidden md:flex gap-4 text-sm text-gray-300">
+          <a href="#" class="text-white">홈</a>
+          <a href="#" class="hover:text-white">지도</a>
+          <a href="#" class="hover:text-white">찜</a>
+          <a href="#" class="hover:text-white">방문기록</a>
+        </nav>
+      </div>
+      <div class="flex items-center gap-4">
+        <!-- 지역 설정 버튼 -->
+        <button id="locationBtn" class="flex items-center gap-2 bg-gradient-to-r from-pink-400 to-pink-500 text-white px-3 py-2 rounded-lg hover:from-pink-500 hover:to-pink-600 transition-all duration-200 shadow-md">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+          </svg>
+          <span id="currentLocation" class="hidden sm:inline">강남구</span>
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+          </svg>
+        </button>
+        <!-- 지도 토글 버튼 -->
+        <button id="mapToggle" class="flex items-center gap-2 bg-gradient-to-r from-pink-400 to-pink-500 text-white px-3 py-2 rounded-lg hover:from-pink-500 hover:to-pink-600 transition-all duration-200 shadow-md">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+          </svg>
+          <span id="toggleText" class="hidden sm:inline">지도</span>
+        </button>
+        <!-- 검색 버튼 (스크롤 시에만 표시) -->
+        <button id="headerSearchBtn" class="hidden text-gray-300 hover:text-white transition-all duration-300">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+          </svg>
+        </button>
+        <!-- 모바일 햄버거 메뉴 버튼 -->
+        <button id="mobileMenuBtn" class="md:hidden text-gray-300 hover:text-white">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+          </svg>
+        </button>
+        <!-- 데스크톱 알림 버튼 -->
+        <button class="hidden md:block text-gray-300 hover:text-white">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-5 5v-5z"></path>
+          </svg>
+        </button>
+        <!-- 데스크톱 프로필 -->
+        <div class="hidden md:block w-8 h-8 bg-gray-700 rounded-full"></div>
+      </div>
+    </header>
+
+    <!-- 모바일 메뉴 오버레이 -->
+    <div id="mobileMenu" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden md:hidden">
+      <div class="absolute inset-0 flex">
+        <!-- 메뉴 패널 -->
+        <div class="w-80 bg-black h-full p-6">
+          <!-- 메뉴 헤더 -->
+          <div class="flex justify-between items-center mb-8">
+            <div class="flex items-center gap-2">
+              <!-- 돼동여지도 로고 (꿀꿀이 탐험가 마스코트) -->
+              <div class="relative">
+                <div class="w-8 h-8 bg-gradient-to-br from-pink-300 to-pink-400 rounded-full flex items-center justify-center">
+                  <span class="text-white text-lg font-bold">🐷</span>
+                </div>
+                <div class="absolute -top-1 -right-1 w-4 h-4 bg-yellow-400 rounded-full flex items-center justify-center">
+                  <span class="text-xs">🔍</span>
+                </div>
+              </div>
+              <span class="text-pink-300 font-bold text-xl tracking-wide">돼동여지도</span>
+            </div>
+            <button id="closeMobileMenu" class="text-gray-400 hover:text-white">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+              </svg>
+            </button>
+          </div>
+          
+          <!-- 메뉴 아이템들 -->
+          <div class="space-y-6">
+            <div class="space-y-4">
+              <a href="#" class="block text-white text-lg font-medium">홈</a>
+              <a href="#" class="block text-gray-300 text-lg hover:text-white">지도</a>
+              <a href="#" class="block text-gray-300 text-lg hover:text-white">찜</a>
+              <a href="#" class="block text-gray-300 text-lg hover:text-white">방문기록</a>
+            </div>
+            
+            <div class="border-t border-gray-800 pt-6">
+              <div class="text-gray-400 text-sm mb-4">서비스</div>
+              <div class="space-y-3">
+                <a href="#" class="block text-gray-300 hover:text-white">맛집 지도</a>
+                <a href="#" class="block text-gray-300 hover:text-white">유튜버 맛집</a>
+                <a href="#" class="block text-gray-300 hover:text-white">지역별 맛집</a>
+                <a href="#" class="block text-gray-300 hover:text-white">메뉴별 맛집</a>
+              </div>
+            </div>
+            
+            <div class="border-t border-gray-800 pt-6">
+              <div class="text-gray-400 text-sm mb-4">설정</div>
+              <div class="space-y-3">
+                <button id="themeBtn" class="w-full text-left block text-gray-300 hover:text-white">
+                  <div class="flex items-center justify-between">
+                    <span>테마 설정</span>
+                    <span id="currentTheme" class="text-pink-300">핑크</span>
+                  </div>
+                </button>
+                <a href="#" class="block text-gray-300 hover:text-white">알림 설정</a>
+                <a href="#" class="block text-gray-300 hover:text-white">개인정보</a>
+              </div>
+            </div>
+            
+            <div class="border-t border-gray-800 pt-6">
+              <div class="text-gray-400 text-sm mb-4">지원</div>
+              <div class="space-y-3">
+                <a href="#" class="block text-gray-300 hover:text-white">고객센터</a>
+                <a href="#" class="block text-gray-300 hover:text-white">문의하기</a>
+                <a href="#" class="block text-gray-300 hover:text-white">앱 다운로드</a>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- 빈 공간 (클릭 시 메뉴 닫기) -->
+        <div class="flex-1" id="mobileMenuOverlay"></div>
+      </div>
+    </div>
+
+    <!-- 검색 바 -->
+    <div id="searchSection" class="px-6 py-4 bg-black border-b border-gray-800 mt-16">
+      <div class="flex items-center gap-2">
+        <div class="flex-1 relative">
+          <input 
+            type="text" 
+            placeholder="맛집, 메뉴, 유튜버 검색" 
+            class="w-full px-4 py-2 bg-gray-800 text-white rounded-full text-sm pl-10" 
+          />
+          <svg class="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+          </svg>
+        </div>
+        <button class="p-2 bg-gray-800 rounded-full">
+          <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- 플로팅 검색 섹션 (스크롤 시 표시) -->
+    <div id="floatingSearchSection" class="fixed top-16 left-0 right-0 bg-black border-b border-gray-800 px-6 py-4 z-40 transform -translate-y-full transition-transform duration-300">
+      <div class="flex items-center gap-2">
+        <div class="flex-1 relative">
+          <input 
+            type="text" 
+            placeholder="맛집, 메뉴, 유튜버 검색" 
+            class="w-full px-4 py-2 bg-gray-800 text-white rounded-full text-sm pl-10" 
+          />
+          <svg class="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+          </svg>
+        </div>
+        <button class="p-2 bg-gray-800 rounded-full">
+          <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path>
+          </svg>
+        </button>
+        <button id="closeFloatingSearch" class="text-gray-400 hover:text-white ml-2">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- 카테고리 필터 -->
+    <div id="filterSection" class="px-6 py-3 bg-black border-b border-gray-800">
+      <!-- 데스크톱: 가로 스크롤 -->
+      <div class="hidden md:flex gap-2 whitespace-nowrap overflow-x-auto">
+        <button class="px-3 py-1 bg-gradient-to-r from-pink-300 to-pink-400 text-white rounded-full text-sm font-medium shadow-sm">전체</button>
+        <button class="px-3 py-1 bg-gray-800 text-white rounded-full text-sm hover:bg-pink-600 hover:shadow-md transition-all duration-200">한식</button>
+        <button class="px-3 py-1 bg-gray-800 text-white rounded-full text-sm hover:bg-pink-600 hover:shadow-md transition-all duration-200">중식</button>
+        <button class="px-3 py-1 bg-gray-800 text-white rounded-full text-sm hover:bg-pink-600 hover:shadow-md transition-all duration-200">일식</button>
+        <button class="px-3 py-1 bg-gray-800 text-white rounded-full text-sm hover:bg-pink-600 hover:shadow-md transition-all duration-200">양식</button>
+        <button class="px-3 py-1 bg-gray-800 text-white rounded-full text-sm hover:bg-pink-600 hover:shadow-md transition-all duration-200">디저트</button>
+        <button class="px-3 py-1 bg-gray-800 text-white rounded-full text-sm hover:bg-pink-600 hover:shadow-md transition-all duration-200">카페</button>
+        <button class="px-3 py-1 bg-gray-800 text-white rounded-full text-sm hover:bg-pink-600 hover:shadow-md transition-all duration-200">술집</button>
+        <button class="px-3 py-1 bg-gray-800 text-white rounded-full text-sm hover:bg-pink-600 hover:shadow-md transition-all duration-200">강남</button>
+        <button class="px-3 py-1 bg-gray-800 text-white rounded-full text-sm hover:bg-pink-600 hover:shadow-md transition-all duration-200">홍대</button>
+        <button class="px-3 py-1 bg-gray-800 text-white rounded-full text-sm hover:bg-pink-600 hover:shadow-md transition-all duration-200">신촌</button>
+      </div>
+      
+      <!-- 모바일: 그리드 레이아웃 -->
+      <div class="md:hidden grid grid-cols-4 gap-2">
+        <button class="px-2 py-1 bg-gradient-to-r from-pink-300 to-pink-400 text-white rounded-full text-xs font-medium shadow-sm">전체</button>
+        <button class="px-2 py-1 bg-gray-800 text-white rounded-full text-xs hover:bg-pink-600 hover:shadow-md transition-all duration-200">한식</button>
+        <button class="px-2 py-1 bg-gray-800 text-white rounded-full text-xs hover:bg-pink-600 hover:shadow-md transition-all duration-200">중식</button>
+        <button class="px-2 py-1 bg-gray-800 text-white rounded-full text-xs hover:bg-pink-600 hover:shadow-md transition-all duration-200">일식</button>
+        <button class="px-2 py-1 bg-gray-800 text-white rounded-full text-xs hover:bg-pink-600 hover:shadow-md transition-all duration-200">양식</button>
+        <button class="px-2 py-1 bg-gray-800 text-white rounded-full text-xs hover:bg-pink-600 hover:shadow-md transition-all duration-200">디저트</button>
+        <button class="px-2 py-1 bg-gray-800 text-white rounded-full text-xs hover:bg-pink-600 hover:shadow-md transition-all duration-200">카페</button>
+        <button class="px-2 py-1 bg-gray-800 text-white rounded-full text-xs hover:bg-pink-600 hover:shadow-md transition-all duration-200">술집</button>
+        <button class="px-2 py-1 bg-gray-800 text-white rounded-full text-xs hover:bg-pink-600 hover:shadow-md transition-all duration-200">강남</button>
+        <button class="px-2 py-1 bg-gray-800 text-white rounded-full text-xs hover:bg-pink-600 hover:shadow-md transition-all duration-200">홍대</button>
+        <button class="px-2 py-1 bg-gray-800 text-white rounded-full text-xs hover:bg-pink-600 hover:shadow-md transition-all duration-200">신촌</button>
+      </div>
+    </div>
+
+
+
+    <!-- 본문 -->
+    <main class="flex">
+      <!-- 사이드바 (데스크톱) -->
+      <aside id="desktopSidebar" class="w-64 bg-black border-r border-gray-800 p-6 hidden xl:block">
+        <div class="space-y-6">
+          <!-- 위치 필터 -->
+          <div>
+            <h3 class="text-sm font-medium text-gray-400 mb-3">지역</h3>
+            <div class="space-y-2">
+              <label class="flex items-center gap-2 text-sm">
+                <input type="radio" name="location" class="accent-pink-400" checked />
+                <span class="text-white">● 강남구</span>
+              </label>
+              <label class="flex items-center gap-2 text-sm">
+                <input type="radio" name="location" class="accent-pink-400" />
+                <span class="text-gray-400">○ 마포구</span>
+              </label>
+              <label class="flex items-center gap-2 text-sm">
+                <input type="radio" name="location" class="accent-pink-400" />
+                <span class="text-gray-400">○ 서대문구</span>
+              </label>
+              <label class="flex items-center gap-2 text-sm">
+                <input type="radio" name="location" class="accent-pink-400" />
+                <span class="text-gray-400">○ 종로구</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- 유튜버 방문수 필터 -->
+          <div>
+            <h3 class="text-sm font-medium text-gray-400 mb-3">유튜버 방문수</h3>
+            <div class="space-y-2">
+              <label class="flex items-center gap-2 text-sm">
+                <input type="checkbox" class="accent-pink-400" />
+                <span class="text-gray-300">1명 이상</span>
+              </label>
+              <label class="flex items-center gap-2 text-sm">
+                <input type="checkbox" class="accent-pink-400" checked />
+                <span class="text-gray-300">3명 이상</span>
+              </label>
+              <label class="flex items-center gap-2 text-sm">
+                <input type="checkbox" class="accent-pink-400" />
+                <span class="text-gray-300">5명 이상</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- 찜 목록 -->
+          <div>
+            <h3 class="text-sm font-medium text-gray-400 mb-3">내 찜</h3>
+            <div class="text-sm text-gray-400">
+              찜한 맛집이 없습니다
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- 맛집 영상 목록 (목록 모드) -->
+      <section id="listSection" class="flex-1 p-6">
+        <!-- 모바일 필터 버튼 -->
+        <div class="xl:hidden mb-4">
+          <button id="mobileFilterBtn" class="flex items-center gap-2 bg-gradient-to-r from-pink-400 to-pink-500 text-white px-4 py-2 rounded-lg hover:from-pink-500 hover:to-pink-600 transition-all duration-200 shadow-md">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
+            </svg>
+            <span>필터</span>
+          </button>
+        </div>
+
+        <!-- 유튜브 숏츠 섹션 -->
+        <div class="mb-8">
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="text-lg font-semibold text-white flex items-center gap-2">
+              <svg class="w-6 h-6 text-red-500" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+              </svg>
+              <span>Shorts</span>
+            </h2>
+            <div class="relative">
+              <button id="shortsMoreBtn" class="text-sm text-gray-400 hover:text-white transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path>
+                </svg>
+              </button>
+              
+              <!-- 숏츠 옵션 메뉴 -->
+              <div id="shortsOptionsMenu" class="hidden absolute right-0 top-8 bg-gray-800 rounded-lg shadow-lg border border-gray-700 min-w-48 z-50">
+                <div class="py-1">
+                  <button class="w-full px-4 py-2 text-sm text-white hover:bg-gray-700 flex items-center gap-3 transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                    <span>Show fewer Shorts</span>
+                  </button>
+                  <button class="w-full px-4 py-2 text-sm text-white hover:bg-gray-700 flex items-center gap-3 transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path>
+                    </svg>
+                    <span>Not interested</span>
+                  </button>
+                  <button class="w-full px-4 py-2 text-sm text-white hover:bg-gray-700 flex items-center gap-3 transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                    </svg>
+                    <span>Report</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- 숏츠 카드 그리드 -->
+          <!-- 모바일에서 2개만 보이도록 컨테이너 -->
+          <div class="md:hidden flex gap-3">
+            <!-- 숏츠 카드 1 (모바일용) -->
+            <div class="cursor-pointer group flex-1">
+              <div class="relative aspect-[9/16] rounded-lg overflow-hidden mb-2">
+                <img src="https://img.youtube.com/vi/dQw4w9WgXcQ/maxresdefault.jpg" alt="숏츠 영상" class="w-full h-full object-cover" />
+                <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+                <div class="absolute bottom-2 left-2 right-2">
+                  <div class="text-white text-xs font-medium line-clamp-2">강남 맛집 숏츠! 30초 만에 보는 맛집</div>
+                </div>
+                <div class="absolute top-2 right-2 bg-black/70 text-white text-xs px-1 py-0.5 rounded">
+                  30s
+                </div>
+              </div>
+              <div class="text-xs text-gray-400">조회수 12.5만회</div>
+            </div>
+
+            <!-- 숏츠 카드 2 (모바일용) -->
+            <div class="cursor-pointer group flex-1">
+              <div class="relative aspect-[9/16] rounded-lg overflow-hidden mb-2">
+                <img src="https://img.youtube.com/vi/9bZkp7q19f0/maxresdefault.jpg" alt="숏츠 영상" class="w-full h-full object-cover" />
+                <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+                <div class="absolute bottom-2 left-2 right-2">
+                  <div class="text-white text-xs font-medium line-clamp-2">홍대 디저트 숏츠! 인스타 감성 카페</div>
+                </div>
+                <div class="absolute top-2 right-2 bg-black/70 text-white text-xs px-1 py-0.5 rounded">
+                  45s
+                </div>
+              </div>
+              <div class="text-xs text-gray-400">조회수 8.2만회</div>
+            </div>
+          </div>
+
+          <!-- 데스크톱용 숏츠 카드 그리드 -->
+          <div class="hidden md:grid md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-3">
+            <!-- 숏츠 카드 1 -->
+            <div class="cursor-pointer group">
+              <div class="relative aspect-[9/16] rounded-lg overflow-hidden mb-2">
+                <img src="https://img.youtube.com/vi/dQw4w9WgXcQ/maxresdefault.jpg" alt="숏츠 영상" class="w-full h-full object-cover" />
+                <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+                <div class="absolute bottom-2 left-2 right-2">
+                  <div class="text-white text-xs font-medium line-clamp-2">강남 맛집 숏츠! 30초 만에 보는 맛집</div>
+                </div>
+                <div class="absolute top-2 right-2 bg-black/70 text-white text-xs px-1 py-0.5 rounded">
+                  30s
+                </div>
+              </div>
+              <div class="text-xs text-gray-400">조회수 12.5만회</div>
+            </div>
+
+            <!-- 숏츠 카드 2 -->
+            <div class="cursor-pointer group">
+              <div class="relative aspect-[9/16] rounded-lg overflow-hidden mb-2">
+                <img src="https://img.youtube.com/vi/9bZkp7q19f0/maxresdefault.jpg" alt="숏츠 영상" class="w-full h-full object-cover" />
+                <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+                <div class="absolute bottom-2 left-2 right-2">
+                  <div class="text-white text-xs font-medium line-clamp-2">홍대 디저트 숏츠! 인스타 감성 카페</div>
+                </div>
+                <div class="absolute top-2 right-2 bg-black/70 text-white text-xs px-1 py-0.5 rounded">
+                  45s
+                </div>
+              </div>
+              <div class="text-xs text-gray-400">조회수 8.2만회</div>
+            </div>
+
+            <!-- 숏츠 카드 3 -->
+            <div class="cursor-pointer group">
+              <div class="relative aspect-[9/16] rounded-lg overflow-hidden mb-2">
+                <img src="https://img.youtube.com/vi/jNQXAC9IVRw/maxresdefault.jpg" alt="숏츠 영상" class="w-full h-full object-cover" />
+                <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+                <div class="absolute bottom-2 left-2 right-2">
+                  <div class="text-white text-xs font-medium line-clamp-2">신촌 술집 숏츠! 대학생 추천 맛집</div>
+                </div>
+                <div class="absolute top-2 right-2 bg-black/70 text-white text-xs px-1 py-0.5 rounded">
+                  25s
+                </div>
+              </div>
+              <div class="text-xs text-gray-400">조회수 5.7만회</div>
+            </div>
+
+            <!-- 숏츠 카드 4 -->
+            <div class="cursor-pointer group">
+              <div class="relative aspect-[9/16] rounded-lg overflow-hidden mb-2">
+                <img src="https://img.youtube.com/vi/kJQP7kiw5Fk/maxresdefault.jpg" alt="숏츠 영상" class="w-full h-full object-cover" />
+                <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+                <div class="absolute bottom-2 left-2 right-2">
+                  <div class="text-white text-xs font-medium line-clamp-2">종로 한식 숏츠! 전통 한정식</div>
+                </div>
+                <div class="absolute top-2 right-2 bg-black/70 text-white text-xs px-1 py-0.5 rounded">
+                  40s
+                </div>
+              </div>
+              <div class="text-xs text-gray-400">조회수 15.3만회</div>
+            </div>
+
+            <!-- 숏츠 카드 5 -->
+            <div class="cursor-pointer group">
+              <div class="relative aspect-[9/16] rounded-lg overflow-hidden mb-2">
+                <img src="https://img.youtube.com/vi/ZZ5LpwO-An4/maxresdefault.jpg" alt="숏츠 영상" class="w-full h-full object-cover" />
+                <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+                <div class="absolute bottom-2 left-2 right-2">
+                  <div class="text-white text-xs font-medium line-clamp-2">이태원 양식 숏츠! 분위기 좋은 레스토랑</div>
+                </div>
+                <div class="absolute top-2 right-2 bg-black/70 text-white text-xs px-1 py-0.5 rounded">
+                  35s
+                </div>
+              </div>
+              <div class="text-xs text-gray-400">조회수 9.1만회</div>
+            </div>
+
+            <!-- 숏츠 카드 6 -->
+            <div class="cursor-pointer group">
+              <div class="relative aspect-[9/16] rounded-lg overflow-hidden mb-2">
+                <img src="https://img.youtube.com/vi/1Bix44H1MaY/maxresdefault.jpg" alt="숏츠 영상" class="w-full h-full object-cover" />
+                <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+                <div class="absolute bottom-2 left-2 right-2">
+                  <div class="text-white text-xs font-medium line-clamp-2">강남 카페 숏츠! 힙한 카페 투어</div>
+                </div>
+                <div class="absolute top-2 right-2 bg-black/70 text-white text-xs px-1 py-0.5 rounded">
+                  50s
+                </div>
+              </div>
+              <div class="text-xs text-gray-400">조회수 7.8만회</div>
+            </div>
+
+            <!-- 숏츠 카드 7 -->
+            <div class="cursor-pointer group">
+              <div class="relative aspect-[9/16] rounded-lg overflow-hidden mb-2">
+                <img src="https://img.youtube.com/vi/2Z4m4lnjxkY/maxresdefault.jpg" alt="숏츠 영상" class="w-full h-full object-cover" />
+                <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+                <div class="absolute bottom-2 left-2 right-2">
+                  <div class="text-white text-xs font-medium line-clamp-2">홍대 술집 숏츠! 대학생 밤문화</div>
+                </div>
+                <div class="absolute top-2 right-2 bg-black/70 text-white text-xs px-1 py-0.5 rounded">
+                  28s
+                </div>
+              </div>
+              <div class="text-xs text-gray-400">조회수 11.2만회</div>
+            </div>
+
+            <!-- 숏츠 카드 8 -->
+            <div class="cursor-pointer group">
+              <div class="relative aspect-[9/16] rounded-lg overflow-hidden mb-2">
+                <img src="https://img.youtube.com/vi/3YxaaGgTQYM/maxresdefault.jpg" alt="숏츠 영상" class="w-full h-full object-cover" />
+                <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+                <div class="absolute bottom-2 left-2 right-2">
+                  <div class="text-white text-xs font-medium line-clamp-2">신촌 디저트 숏츠! 달콤한 디저트</div>
+                </div>
+                <div class="absolute top-2 right-2 bg-black/70 text-white text-xs px-1 py-0.5 rounded">
+                  32s
+                </div>
+              </div>
+              <div class="text-xs text-gray-400">조회수 6.4만회</div>
+            </div>
+          </div>
+        </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          <!-- 맛집 영상 카드 1 -->
+          <div class="bg-gray-900 rounded-lg overflow-hidden cursor-pointer hover:bg-gray-800 transition-colors" onclick="window.location.href='detail.html'">
+            <div class="relative">
+              <img src="https://img.youtube.com/vi/8jLOx1hD3_o/maxresdefault.jpg" alt="강남역 맛집! 1인분도 가능한 이자카야 추천" class="w-full aspect-video object-cover" />
+              <div class="absolute inset-0 bg-black bg-opacity-20 flex items-center justify-center">
+                <div class="w-16 h-16 bg-gradient-to-r from-pink-400 to-pink-500 rounded-full flex items-center justify-center shadow-lg">
+                  <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M8 5v14l11-7z"/>
+                  </svg>
+                </div>
+              </div>
+              <div class="absolute bottom-2 right-2 bg-black bg-opacity-80 text-white text-xs px-1 py-0.5 rounded">
+                12:34
+              </div>
+              <button class="absolute top-2 right-2 w-8 h-8 bg-black bg-opacity-60 rounded-full flex items-center justify-center hover:bg-opacity-80">
+                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                </svg>
+              </button>
+            </div>
+            <div class="p-3">
+              <h3 class="text-sm font-medium text-white mb-1 line-clamp-2">서울 강남 맛집 투어! 현지인이 추천하는 숨겨진 맛집들</h3>
+              <p class="text-xs text-gray-400 mb-1">먹방유튜버 김철수</p>
+              <div class="flex items-center gap-2 text-xs text-gray-500">
+                <span>조회수 12.5만회</span>
+                <span>•</span>
+                <span>2주 전</span>
+                <span>•</span>
+                <span>📍 500m</span>
+              </div>
+              <div class="flex items-center gap-1 mt-2">
+                <span class="text-xs bg-gradient-to-r from-pink-400 to-pink-500 text-white px-2 py-0.5 rounded flex items-center gap-1">
+                  <span class="text-xs">🐷</span>
+                  <span>유튜버 3명 방문</span>
+                </span>
+                <span class="text-xs bg-gray-700 text-gray-300 px-2 py-0.5 rounded">일식</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 맛집 영상 카드 2 -->
+          <div class="bg-gray-900 rounded-lg overflow-hidden cursor-pointer hover:bg-gray-800 transition-colors">
+            <div class="relative">
+              <img src="https://via.placeholder.com/320x180?text=맛집+영상+2" alt="맛집 영상" class="w-full aspect-video object-cover" />
+              <div class="absolute bottom-2 right-2 bg-black bg-opacity-80 text-white text-xs px-1 py-0.5 rounded">
+                8:45
+              </div>
+              <button class="absolute top-2 right-2 w-8 h-8 bg-black bg-opacity-60 rounded-full flex items-center justify-center hover:bg-opacity-80">
+                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                </svg>
+              </button>
+            </div>
+            <div class="p-3">
+              <h3 class="text-sm font-medium text-white mb-1 line-clamp-2">홍대 디저트 맛집 탐방! 인스타 감성 카페 3곳</h3>
+              <p class="text-xs text-gray-400 mb-1">카페투어 이영희</p>
+              <div class="flex items-center gap-2 text-xs text-gray-500">
+                <span>조회수 8.2만회</span>
+                <span>•</span>
+                <span>1주 전</span>
+                <span>•</span>
+                <span>📍 1.2km</span>
+              </div>
+              <div class="flex items-center gap-1 mt-2">
+                <span class="text-xs bg-gradient-to-r from-pink-400 to-pink-500 text-white px-2 py-0.5 rounded flex items-center gap-1">
+                  <span class="text-xs">🐷</span>
+                  <span>유튜버 5명 방문</span>
+                </span>
+                <span class="text-xs bg-gray-700 text-gray-300 px-2 py-0.5 rounded">디저트</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 맛집 영상 카드 3 -->
+          <div class="bg-gray-900 rounded-lg overflow-hidden cursor-pointer hover:bg-gray-800 transition-colors">
+            <div class="relative">
+              <img src="https://via.placeholder.com/320x180?text=맛집+영상+3" alt="맛집 영상" class="w-full aspect-video object-cover" />
+              <div class="absolute bottom-2 right-2 bg-black bg-opacity-80 text-white text-xs px-1 py-0.5 rounded">
+                15:22
+              </div>
+              <button class="absolute top-2 right-2 w-8 h-8 bg-black bg-opacity-60 rounded-full flex items-center justify-center hover:bg-opacity-80">
+                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                </svg>
+              </button>
+            </div>
+            <div class="p-3">
+              <h3 class="text-sm font-medium text-white mb-1 line-clamp-2">신촌 술집 맛집! 대학생들이 추천하는 맛집</h3>
+              <p class="text-xs text-gray-400 mb-1">술집탐방 박민수</p>
+              <div class="flex items-center gap-2 text-xs text-gray-500">
+                <span>조회수 5.7만회</span>
+                <span>•</span>
+                <span>3일 전</span>
+                <span>•</span>
+                <span>📍 800m</span>
+              </div>
+              <div class="flex items-center gap-1 mt-2">
+                <span class="text-xs bg-gradient-to-r from-pink-400 to-pink-500 text-white px-2 py-0.5 rounded flex items-center gap-1">
+                  <span class="text-xs">🐷</span>
+                  <span>유튜버 2명 방문</span>
+                </span>
+                <span class="text-xs bg-gray-700 text-gray-300 px-2 py-0.5 rounded">술집</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 맛집 영상 카드 4 -->
+          <div class="bg-gray-900 rounded-lg overflow-hidden cursor-pointer hover:bg-gray-800 transition-colors">
+            <div class="relative">
+              <img src="https://via.placeholder.com/320x180?text=맛집+영상+4" alt="맛집 영상" class="w-full aspect-video object-cover" />
+              <div class="absolute bottom-2 right-2 bg-black bg-opacity-80 text-white text-xs px-1 py-0.5 rounded">
+                10:15
+              </div>
+              <button class="absolute top-2 right-2 w-8 h-8 bg-black bg-opacity-60 rounded-full flex items-center justify-center hover:bg-opacity-80">
+                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                </svg>
+              </button>
+            </div>
+            <div class="p-3">
+              <h3 class="text-sm font-medium text-white mb-1 line-clamp-2">종로 한식 맛집! 전통 한옥에서 즐기는 한정식</h3>
+              <p class="text-xs text-gray-400 mb-1">한식맛집 최지영</p>
+              <div class="flex items-center gap-2 text-xs text-gray-500">
+                <span>조회수 15.3만회</span>
+                <span>•</span>
+                <span>1주 전</span>
+                <span>•</span>
+                <span>📍 2.1km</span>
+              </div>
+              <div class="flex items-center gap-1 mt-2">
+                <span class="text-xs bg-gradient-to-r from-pink-400 to-pink-500 text-white px-2 py-0.5 rounded flex items-center gap-1">
+                  <span class="text-xs">🐷</span>
+                  <span>유튜버 7명 방문</span>
+                </span>
+                <span class="text-xs bg-gray-700 text-gray-300 px-2 py-0.5 rounded">한식</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 맛집 영상 카드 5 -->
+          <div class="bg-gray-900 rounded-lg overflow-hidden cursor-pointer hover:bg-gray-800 transition-colors">
+            <div class="relative">
+              <img src="https://via.placeholder.com/320x180?text=맛집+영상+5" alt="맛집 영상" class="w-full aspect-video object-cover" />
+              <div class="absolute bottom-2 right-2 bg-black bg-opacity-80 text-white text-xs px-1 py-0.5 rounded">
+                6:42
+              </div>
+              <button class="absolute top-2 right-2 w-8 h-8 bg-black bg-opacity-60 rounded-full flex items-center justify-center hover:bg-opacity-80">
+                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                </svg>
+              </button>
+            </div>
+            <div class="p-3">
+              <h3 class="text-sm font-medium text-white mb-1 line-clamp-2">마포구 중식 맛집! 진짜 중국인이 운영하는 짜장면</h3>
+              <p class="text-xs text-gray-400 mb-1">중식맛집 김동현</p>
+              <div class="flex items-center gap-2 text-xs text-gray-500">
+                <span>조회수 9.1만회</span>
+                <span>•</span>
+                <span>5일 전</span>
+                <span>•</span>
+                <span>📍 1.5km</span>
+              </div>
+              <div class="flex items-center gap-1 mt-2">
+                <span class="text-xs bg-gradient-to-r from-pink-400 to-pink-500 text-white px-2 py-0.5 rounded flex items-center gap-1">
+                  <span class="text-xs">🐷</span>
+                  <span>유튜버 4명 방문</span>
+                </span>
+                <span class="text-xs bg-gray-700 text-gray-300 px-2 py-0.5 rounded">중식</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 맛집 영상 카드 6 -->
+          <div class="bg-gray-900 rounded-lg overflow-hidden cursor-pointer hover:bg-gray-800 transition-colors">
+            <div class="relative">
+              <img src="https://via.placeholder.com/320x180?text=맛집+영상+6" alt="맛집 영상" class="w-full aspect-video object-cover" />
+              <div class="absolute bottom-2 right-2 bg-black bg-opacity-80 text-white text-xs px-1 py-0.5 rounded">
+                11:28
+              </div>
+              <button class="absolute top-2 right-2 w-8 h-8 bg-black bg-opacity-60 rounded-full flex items-center justify-center hover:bg-opacity-80">
+                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                </svg>
+              </button>
+            </div>
+            <div class="p-3">
+              <h3 class="text-sm font-medium text-white mb-1 line-clamp-2">강남 양식 맛집! 데이트하기 좋은 이탈리안 레스토랑</h3>
+              <p class="text-xs text-gray-400 mb-1">데이트맛집 이수진</p>
+              <div class="flex items-center gap-2 text-xs text-gray-500">
+                <span>조회수 7.8만회</span>
+                <span>•</span>
+                <span>2일 전</span>
+                <span>•</span>
+                <span>📍 900m</span>
+              </div>
+              <div class="flex items-center gap-1 mt-2">
+                <span class="text-xs bg-gradient-to-r from-pink-400 to-pink-500 text-white px-2 py-0.5 rounded flex items-center gap-1">
+                  <span class="text-xs">🐷</span>
+                  <span>유튜버 6명 방문</span>
+                </span>
+                <span class="text-xs bg-gray-700 text-gray-300 px-2 py-0.5 rounded">양식</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 지도 섹션 (지도 모드) -->
+      <section id="mapSection" class="flex-1 hidden">
+        <div class="relative h-full">
+          <!-- 지도 컨테이너 -->
+          <div id="map" class="w-full h-screen"></div>
+          
+          <!-- 지도 오버레이 컨트롤 -->
+          <div class="absolute top-4 left-4 bg-black bg-opacity-80 rounded-lg p-3">
+            <div class="text-white text-sm font-medium mb-2">맛집 필터</div>
+            <div class="space-y-2">
+              <label class="flex items-center gap-2 text-xs">
+                <input type="checkbox" checked class="accent-red-500" />
+                <span class="text-white">일식</span>
+              </label>
+              <label class="flex items-center gap-2 text-xs">
+                <input type="checkbox" checked class="accent-red-500" />
+                <span class="text-white">한식</span>
+              </label>
+              <label class="flex items-center gap-2 text-xs">
+                <input type="checkbox" checked class="accent-red-500" />
+                <span class="text-white">중식</span>
+              </label>
+              <label class="flex items-center gap-2 text-xs">
+                <input type="checkbox" checked class="accent-red-500" />
+                <span class="text-white">양식</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- 현재 위치 버튼 -->
+          <button class="absolute top-4 right-4 bg-black bg-opacity-80 text-white p-3 rounded-full hover:bg-opacity-90">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+            </svg>
+          </button>
+        </div>
+      </section>
+    </main>
+
+    <!-- 모바일 필터 모달 -->
+    <div id="mobileFilterModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden">
+      <div class="absolute inset-0 flex items-end lg:items-center justify-center">
+        <div class="bg-black w-full lg:w-96 h-5/6 lg:h-auto max-h-screen overflow-y-auto rounded-t-lg lg:rounded-lg">
+          <!-- 모달 헤더 -->
+          <div class="flex justify-between items-center p-4 border-b border-gray-800">
+            <h2 class="text-lg font-semibold text-white">맛집 검색 필터</h2>
+            <button id="closeFilterModal" class="text-gray-400 hover:text-white">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+              </svg>
+            </button>
+          </div>
+
+          <!-- 모달 내용 -->
+          <div class="p-4 space-y-6">
+            <!-- 위치 필터 -->
+            <div>
+              <h3 class="text-sm font-medium text-gray-400 mb-3">지역</h3>
+              <div class="space-y-2">
+                <label class="flex items-center gap-2 text-sm">
+                  <input type="radio" name="mobileLocation" class="accent-red-500" checked />
+                  <span class="text-white">● 강남구</span>
+                </label>
+                <label class="flex items-center gap-2 text-sm">
+                  <input type="radio" name="mobileLocation" class="accent-red-500" />
+                  <span class="text-gray-400">○ 마포구</span>
+                </label>
+                <label class="flex items-center gap-2 text-sm">
+                  <input type="radio" name="mobileLocation" class="accent-red-500" />
+                  <span class="text-gray-400">○ 서대문구</span>
+                </label>
+                <label class="flex items-center gap-2 text-sm">
+                  <input type="radio" name="mobileLocation" class="accent-red-500" />
+                  <span class="text-gray-400">○ 종로구</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- 유튜버 방문수 필터 -->
+            <div>
+              <h3 class="text-sm font-medium text-gray-400 mb-3">유튜버 방문수</h3>
+              <div class="space-y-2">
+                <label class="flex items-center gap-2 text-sm">
+                  <input type="checkbox" class="accent-red-500" />
+                  <span class="text-gray-300">1명 이상</span>
+                </label>
+                <label class="flex items-center gap-2 text-sm">
+                  <input type="checkbox" class="accent-red-500" checked />
+                  <span class="text-gray-300">3명 이상</span>
+                </label>
+                <label class="flex items-center gap-2 text-sm">
+                  <input type="checkbox" class="accent-red-500" />
+                  <span class="text-gray-300">5명 이상</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- 찜 목록 -->
+            <div>
+              <h3 class="text-sm font-medium text-gray-400 mb-3">내 찜</h3>
+              <div class="text-sm text-gray-400">
+                찜한 맛집이 없습니다
+              </div>
+            </div>
+          </div>
+
+          <!-- 모달 액션 버튼 -->
+          <div class="p-4 border-t border-gray-800 flex gap-3">
+            <button id="clearFilters" class="flex-1 bg-gray-700 text-white py-2 rounded-lg hover:bg-gray-600">
+              전체 해제
+            </button>
+            <button id="applyFilters" class="flex-1 bg-red-600 text-white py-2 rounded-lg hover:bg-red-700">
+              필터 적용
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->   
+
+    <!-- 앱 다운로드 섹션 -->
+    <section class="bg-[#3d2e27] py-16">
+      <div class="max-w-7xl mx-auto px-6">
+        <div class="flex flex-col lg:flex-row items-center justify-between">
+          <!-- 왼쪽: 앱 소개 및 다운로드 -->
+          <div class="lg:w-1/2 mb-8 lg:mb-0">
+            <h2 class="text-2xl lg:text-3xl font-bold mb-4 text-orange-500">유튜브 맛집을 실제로 방문해보세요.</h2>
+            <p class="text-2xl lg:text-3xl font-semibold text-white mb-8">
+              지금 바로 다운로드하기
+            </p>
+            <div class="flex flex-col sm:flex-row gap-4">
+              <button class="flex items-center justify-center gap-3 bg-black text-white px-6 py-3 rounded-lg hover:bg-gray-800 transition-colors">
+                <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
+                </svg>
+                <div class="text-left">
+                  <div class="text-xs">Download on the</div>
+                  <div class="text-sm font-semibold">App Store</div>
+                </div>
+              </button>
+              <button class="flex items-center justify-center gap-3 bg-black text-white px-6 py-3 rounded-lg hover:bg-gray-800 transition-colors">
+                <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M3,20.5V3.5C3,2.91 3.34,2.39 3.84,2.15L13.69,12L3.84,21.85C3.34,21.61 3,21.09 3,20.5M16.81,15.12L6.05,21.34L14.54,12.85L16.81,15.12M20.16,10.81C20.5,11.08 20.75,11.5 20.75,12C20.75,12.5 20.53,12.9 20.18,13.18L17.89,14.5L15.39,12L17.89,9.5L20.16,10.81M6.05,2.66L16.81,8.88L14.54,11.15L6.05,2.66Z"/>
+                </svg>
+                <div class="text-left">
+                  <div class="text-xs">GET IT ON</div>
+                  <div class="text-sm font-semibold">Google Play</div>
+                </div>
+              </button>
+            </div>
+          </div>
+          
+
+        </div>
+      </div>
+    </section>
+
+    <!-- 푸터 -->
+    <footer class="bg-black border-t border-gray-800">
+      <div class="max-w-7xl mx-auto px-6 py-12">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8">
+          <!-- 로고 및 소셜미디어 -->
+          <div class="lg:col-span-1">
+            <div class="flex items-center gap-2 mb-4">
+              <div class="relative">
+                <div class="w-8 h-8 bg-gradient-to-br from-pink-300 to-pink-400 rounded-full flex items-center justify-center">
+                  <span class="text-white text-lg font-bold">🐷</span>
+                </div>
+                <div class="absolute -top-1 -right-1 w-4 h-4 bg-yellow-400 rounded-full flex items-center justify-center">
+                  <span class="text-xs">🔍</span>
+                </div>
+              </div>
+              <span class="text-pink-300 font-bold text-xl tracking-wide">돼동여지도</span>
+            </div>
+            <div class="flex gap-4">
+              <a href="#" class="text-gray-400 hover:text-white">
+                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                </svg>
+              </a>
+              <a href="#" class="text-gray-400 hover:text-white">
+                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12.017 0C5.396 0 .029 5.367.029 11.987c0 5.079 3.158 9.417 7.618 11.174-.105-.949-.199-2.403.041-3.439.219-.937 1.406-5.957 1.406-5.957s-.359-.72-.359-1.781c0-1.663.967-2.911 2.168-2.911 1.024 0 1.518.769 1.518 1.688 0 1.029-.653 2.567-.992 3.992-.285 1.193.6 2.165 1.775 2.165 2.128 0 3.768-2.245 3.768-5.487 0-2.861-2.063-4.869-5.008-4.869-3.41 0-5.409 2.562-5.409 5.199 0 1.033.394 2.143.889 2.741.099.12.112.225.085.345-.09.375-.293 1.199-.334 1.363-.053.225-.172.271-.402.165-1.495-.69-2.433-2.878-2.433-4.646 0-3.776 2.748-7.252 7.92-7.252 4.158 0 7.392 2.967 7.392 6.923 0 4.135-2.607 7.462-6.233 7.462-1.214 0-2.357-.629-2.746-1.378l-.748 2.853c-.271 1.043-1.002 2.35-1.492 3.146C9.57 23.812 10.763 24.009 12.017 24.009c6.624 0 11.99-5.367 11.99-11.988C24.007 5.367 18.641.001 12.017.001z"/>
+                </svg>
+              </a>
+              <a href="#" class="text-gray-400 hover:text-white">
+                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                </svg>
+              </a>
+            </div>
+            
+            <!-- 로컬 데이터 안내 -->
+            <div class="mt-4 p-3 bg-gray-800 rounded-lg">
+              <div class="flex items-center gap-2 text-sm text-gray-300">
+                <span>찜과 방문기록은 브라우저에 저장됩니다</span>
+              </div>
+              <div class="text-xs text-gray-400 mt-1">
+                나중에 회원가입하면 모든 기기에서 동기화할 수 있어요
+              </div>
+            </div>
+          </div>
+          
+          <!-- 회사 -->
+          <div>
+            <h3 class="text-white font-semibold mb-4">회사</h3>
+            <div class="space-y-2 text-sm text-gray-400">
+              <a href="#" class="block hover:text-white">회사 소개</a>
+              <a href="#" class="block hover:text-white">서비스 소개</a>
+              <a href="#" class="block hover:text-white">팀문화</a>
+              <a href="#" class="block hover:text-white">블로그</a>
+              <a href="#" class="block hover:text-white">채용</a>
+            </div>
+          </div>
+          
+          <!-- 탐색 -->
+          <div>
+            <h3 class="text-white font-semibold mb-4">탐색</h3>
+            <div class="space-y-2 text-sm text-gray-400">
+              <a href="#" class="block hover:text-white">맛집 지도</a>
+              <a href="#" class="block hover:text-white">유튜버 맛집</a>
+              <a href="#" class="block hover:text-white">지역별 맛집</a>
+              <a href="#" class="block hover:text-white">메뉴별 맛집</a>
+              <a href="#" class="block hover:text-white">찜한 맛집</a>
+            </div>
+          </div>
+          
+          <!-- 비즈니스 -->
+          <div>
+            <h3 class="text-white font-semibold mb-4">비즈니스</h3>
+            <div class="space-y-2 text-sm text-gray-400">
+              <a href="#" class="block hover:text-white">맛집 등록</a>
+              <a href="#" class="block hover:text-white">유튜버 캠페인</a>
+              <a href="#" class="block hover:text-white">광고 문의</a>
+            </div>
+          </div>
+          
+          <!-- 문의 -->
+          <div>
+            <h3 class="text-white font-semibold mb-4">문의</h3>
+            <div class="space-y-2 text-sm text-gray-400">
+              <a href="#" class="block hover:text-white">고객센터</a>
+              <a href="#" class="block hover:text-white">오류 제보</a>
+              <a href="#" class="block hover:text-white">문의하기</a>
+            </div>
+          </div>
+        </div>
+        
+        <!-- 하단 정보 -->
+        <div class="border-t border-gray-800 mt-8 pt-8">
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-xs text-gray-500">
+            <div>대표: 김맛집</div>
+            <div>사업자번호: 123-45-67890</div>
+            <div>주소: 서울특별시 강남구 테헤란로 123</div>
+            <div>전화: 02-1234-5678</div>
+            <div>고객문의: contact@matzipmap.com</div>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <!-- 테마 선택 모달 -->
+    <div id="themeModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden">
+      <div class="absolute inset-0 flex items-center justify-center p-4">
+        <div class="bg-black w-full max-w-md rounded-lg border border-gray-800">
+          <!-- 모달 헤더 -->
+          <div class="flex justify-between items-center p-4 border-b border-gray-800">
+            <h2 class="text-lg font-semibold text-white">테마 설정</h2>
+            <button id="closeThemeModal" class="text-gray-400 hover:text-white">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+              </svg>
+            </button>
+          </div>
+
+          <!-- 모달 내용 -->
+          <div class="p-4">
+            <div class="space-y-3">
+              <!-- 클래식 테마 -->
+              <button class="theme-option w-full text-left p-4 rounded-lg border-2 border-transparent hover:border-gray-600 transition-colors" data-theme="classic">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 bg-gradient-to-r from-orange-400 to-orange-500 rounded-full flex items-center justify-center">
+                      <span class="text-white text-sm">🎨</span>
+                    </div>
+                    <div>
+                      <div class="text-white font-medium">클래식</div>
+                      <div class="text-gray-400 text-sm">따뜻하고 중성적인 톤</div>
+                    </div>
+                  </div>
+                  <div class="text-orange-300 text-sm">기본</div>
+                </div>
+              </button>
+
+              <!-- 핑크 테마 -->
+              <button class="theme-option w-full text-left p-4 rounded-lg border-2 border-pink-500 hover:border-pink-400 transition-colors" data-theme="pink">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 bg-gradient-to-r from-pink-400 to-pink-500 rounded-full flex items-center justify-center">
+                      <span class="text-white text-sm">🌸</span>
+                    </div>
+                    <div>
+                      <div class="text-white font-medium">핑크</div>
+                      <div class="text-gray-400 text-sm">귀엽고 따뜻한 느낌</div>
+                    </div>
+                  </div>
+                  <div class="text-pink-300 text-sm">현재</div>
+                </div>
+              </button>
+
+              <!-- 다크 테마 -->
+              <button class="theme-option w-full text-left p-4 rounded-lg border-2 border-transparent hover:border-gray-600 transition-colors" data-theme="dark">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 bg-gradient-to-r from-blue-600 to-blue-700 rounded-full flex items-center justify-center">
+                      <span class="text-white text-sm">🌙</span>
+                    </div>
+                    <div>
+                      <div class="text-white font-medium">다크</div>
+                      <div class="text-gray-400 text-sm">깊고 세련된 느낌</div>
+                    </div>
+                  </div>
+                </div>
+              </button>
+
+              <!-- 모던 테마 -->
+              <button class="theme-option w-full text-left p-4 rounded-lg border-2 border-transparent hover:border-gray-600 transition-colors" data-theme="modern">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 bg-gradient-to-r from-gray-400 to-gray-500 rounded-full flex items-center justify-center">
+                      <span class="text-white text-sm">⚡</span>
+                    </div>
+                    <div>
+                      <div class="text-white font-medium">모던</div>
+                      <div class="text-gray-400 text-sm">미니멀하고 깔끔한 느낌</div>
+                    </div>
+                  </div>
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 지역 선택 모달 -->
+    <div id="locationModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden">
+      <div class="absolute inset-0 flex items-center justify-center p-4">
+        <div class="bg-black w-full max-w-md rounded-lg border border-gray-800">
+          <!-- 모달 헤더 -->
+          <div class="flex justify-between items-center p-4 border-b border-gray-800">
+            <h2 class="text-lg font-semibold text-white">지역 변경</h2>
+            <button id="closeLocationModal" class="text-gray-400 hover:text-white">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+              </svg>
+            </button>
+          </div>
+
+          <!-- 모달 내용 -->
+          <div class="p-4">
+            <!-- 검색 입력 -->
+            <div class="mb-4">
+              <input 
+                type="text" 
+                placeholder="지역이나 동네로 검색하기" 
+                class="w-full px-4 py-2 bg-gray-800 text-white rounded-lg text-sm" 
+              />
+            </div>
+
+            <!-- 현재 위치 사용 버튼 -->
+            <button class="w-full bg-gray-800 text-white py-3 rounded-lg mb-4 hover:bg-gray-700">
+              📍 현재 내 위치 사용하기
+            </button>
+
+            <!-- 추천 지역 -->
+            <div>
+              <h3 class="text-sm font-medium text-gray-400 mb-3">추천</h3>
+              <div class="space-y-2">
+                <button class="w-full text-left p-3 rounded-lg hover:bg-gray-800 text-white">
+                  <div class="text-sm">인천광역시, 연수구, 송도동</div>
+                </button>
+                <button class="w-full text-left p-3 rounded-lg hover:bg-gray-800 text-white">
+                  <div class="text-sm">서울특별시, 강남구, 역삼동</div>
+                </button>
+                <button class="w-full text-left p-3 rounded-lg hover:bg-gray-800 text-white">
+                  <div class="text-sm">경상남도, 양산시, 물금읍</div>
+                </button>
+                <button class="w-full text-left p-3 rounded-lg hover:bg-gray-800 text-white">
+                  <div class="text-sm">경기도, 화성시, 봉담읍</div>
+                </button>
+                <button class="w-full text-left p-3 rounded-lg hover:bg-gray-800 text-white">
+                  <div class="text-sm">충청남도, 아산시, 배방읍</div>
+                </button>
+                <button class="w-full text-left p-3 rounded-lg hover:bg-gray-800 text-white">
+                  <div class="text-sm">서울특별시, 서초구, 서초동</div>
+                </button>
+                <button class="w-full text-left p-3 rounded-lg hover:bg-gray-800 text-white">
+                  <div class="text-sm">경기도, 양주시, 옥정동</div>
+                </button>
+                <button class="w-full text-left p-3 rounded-lg hover:bg-gray-800 text-white">
+                  <div class="text-sm">서울특별시, 관악구, 신림동</div>
+                </button>
+                <button class="w-full text-left p-3 rounded-lg hover:bg-gray-800 text-white">
+                  <div class="text-sm">충청남도, 천안시 서북구, 불당동</div>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // 지도 토글 기능
+      let isMapMode = false;
+      const mapToggle = document.getElementById('mapToggle');
+      const toggleText = document.getElementById('toggleText');
+      const listSection = document.getElementById('listSection');
+      const mapSection = document.getElementById('mapSection');
+      const sidebar = document.getElementById('desktopSidebar');
+      const searchSection = document.getElementById('searchSection');
+      const filterSection = document.getElementById('filterSection');
+
+
+
+      mapToggle.addEventListener('click', function() {
+        isMapMode = !isMapMode;
+        
+        if (isMapMode) {
+          // 지도 모드로 전환
+          toggleText.textContent = '목록';
+          listSection.classList.add('hidden');
+          mapSection.classList.remove('hidden');
+          sidebar.classList.add('hidden');
+          searchSection.classList.add('hidden');
+          filterSection.classList.add('hidden');
+          
+          // 지도 초기화
+          initMap();
+        } else {
+          // 목록 모드로 전환
+          toggleText.textContent = '지도';
+          listSection.classList.remove('hidden');
+          mapSection.classList.add('hidden');
+          sidebar.classList.remove('hidden');
+          searchSection.classList.remove('hidden');
+          filterSection.classList.remove('hidden');
+        }
+      });
+
+
+
+      // 지도 초기화 함수
+      function initMap() {
+        // 서울 강남구 중심 좌표
+        const seoul = { lat: 37.5665, lng: 126.9780 };
+        
+        const map = new google.maps.Map(document.getElementById('map'), {
+          zoom: 13,
+          center: seoul,
+          styles: [
+            {
+              "featureType": "all",
+              "elementType": "geometry",
+              "stylers": [{"color": "#242f3e"}]
+            },
+            {
+              "featureType": "all",
+              "elementType": "labels.text.stroke",
+              "stylers": [{"color": "#242f3e"}]
+            },
+            {
+              "featureType": "all",
+              "elementType": "labels.text.fill",
+              "stylers": [{"color": "#746855"}]
+            },
+            {
+              "featureType": "administrative.locality",
+              "elementType": "labels.text.fill",
+              "stylers": [{"color": "#d59563"}]
+            },
+            {
+              "featureType": "poi",
+              "elementType": "labels.text.fill",
+              "stylers": [{"color": "#d59563"}]
+            },
+            {
+              "featureType": "poi.park",
+              "elementType": "geometry",
+              "stylers": [{"color": "#263c3f"}]
+            },
+            {
+              "featureType": "poi.park",
+              "elementType": "labels.text.fill",
+              "stylers": [{"color": "#6b9a76"}]
+            },
+            {
+              "featureType": "road",
+              "elementType": "geometry",
+              "stylers": [{"color": "#38414e"}]
+            },
+            {
+              "featureType": "road",
+              "elementType": "geometry.stroke",
+              "stylers": [{"color": "#212a37"}]
+            },
+            {
+              "featureType": "road",
+              "elementType": "labels.text.fill",
+              "stylers": [{"color": "#9ca5b3"}]
+            },
+            {
+              "featureType": "road.highway",
+              "elementType": "geometry",
+              "stylers": [{"color": "#746855"}]
+            },
+            {
+              "featureType": "road.highway",
+              "elementType": "geometry.stroke",
+              "stylers": [{"color": "#1f2835"}]
+            },
+            {
+              "featureType": "road.highway",
+              "elementType": "labels.text.fill",
+              "stylers": [{"color": "#f3d19c"}]
+            },
+            {
+              "featureType": "transit",
+              "elementType": "geometry",
+              "stylers": [{"color": "#2f3948"}]
+            },
+            {
+              "featureType": "transit.station",
+              "elementType": "labels.text.fill",
+              "stylers": [{"color": "#d59563"}]
+            },
+            {
+              "featureType": "water",
+              "elementType": "geometry",
+              "stylers": [{"color": "#17263c"}]
+            },
+            {
+              "featureType": "water",
+              "elementType": "labels.text.fill",
+              "stylers": [{"color": "#515c6d"}]
+            },
+            {
+              "featureType": "water",
+              "elementType": "labels.text.stroke",
+              "stylers": [{"color": "#17263c"}]
+            }
+          ]
+        });
+
+        // 맛집 마커 데이터
+        const restaurants = [
+          {
+            position: { lat: 37.5665, lng: 126.9780 },
+            title: "강남역 이자카야 하나",
+            category: "일식",
+            youtubers: 3,
+            views: "12.5만회"
+          },
+          {
+            position: { lat: 37.5565, lng: 126.9280 },
+            title: "홍대 디저트 카페",
+            category: "디저트",
+            youtubers: 5,
+            views: "8.2만회"
+          },
+          {
+            position: { lat: 37.5465, lng: 126.9380 },
+            title: "신촌 술집",
+            category: "술집",
+            youtubers: 2,
+            views: "5.7만회"
+          },
+          {
+            position: { lat: 37.5765, lng: 126.9880 },
+            title: "종로 한식 맛집",
+            category: "한식",
+            youtubers: 7,
+            views: "15.3만회"
+          },
+          {
+            position: { lat: 37.5365, lng: 126.9480 },
+            title: "마포구 중식 맛집",
+            category: "중식",
+            youtubers: 4,
+            views: "9.1만회"
+          },
+          {
+            position: { lat: 37.5865, lng: 126.9980 },
+            title: "강남 양식 맛집",
+            category: "양식",
+            youtubers: 6,
+            views: "7.8만회"
+          }
+        ];
+
+        // 맛집 마커 생성
+        restaurants.forEach(restaurant => {
+          const marker = new google.maps.Marker({
+            position: restaurant.position,
+            map: map,
+            title: restaurant.title,
+            icon: {
+              url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
+                <svg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="20" cy="20" r="18" fill="#ef4444" stroke="#ffffff" stroke-width="2"/>
+                  <text x="20" y="25" text-anchor="middle" fill="white" font-size="12" font-weight="bold">🍽️</text>
+                </svg>
+              `),
+              scaledSize: new google.maps.Size(40, 40)
+            }
+          });
+
+          // 정보창 생성
+          const infowindow = new google.maps.InfoWindow({
+            content: `
+              <div style="padding: 10px; min-width: 200px;">
+                <h3 style="margin: 0 0 5px 0; font-weight: bold;">${restaurant.title}</h3>
+                <p style="margin: 0 0 5px 0; color: #666;">${restaurant.category}</p>
+                <p style="margin: 0 0 5px 0; color: #666;">유튜버 ${restaurant.youtubers}명 방문</p>
+                <p style="margin: 0; color: #666;">조회수 ${restaurant.views}</p>
+                <button onclick="window.location.href='detail.html'" style="margin-top: 10px; padding: 5px 10px; background: #ef4444; color: white; border: none; border-radius: 4px; cursor: pointer;">상세보기</button>
+              </div>
+            `
+          });
+
+          // 마커 클릭 이벤트
+          marker.addListener('click', () => {
+            infowindow.open(map, marker);
+          });
+        });
+      }
+
+      // 모바일 필터 모달 이벤트 리스너
+      const mobileFilterBtn = document.getElementById('mobileFilterBtn');
+      const mobileFilterModal = document.getElementById('mobileFilterModal');
+      const closeFilterModal = document.getElementById('closeFilterModal');
+      const clearFilters = document.getElementById('clearFilters');
+      const applyFilters = document.getElementById('applyFilters');
+
+      if (mobileFilterBtn) {
+        mobileFilterBtn.addEventListener('click', function() {
+          mobileFilterModal.classList.remove('hidden');
+          // 스크롤 방지 (overflow 대신 position: fixed 사용)
+          document.body.style.position = 'fixed';
+          document.body.style.width = '100%';
+        });
+      }
+
+      if (closeFilterModal) {
+        closeFilterModal.addEventListener('click', function() {
+          mobileFilterModal.classList.add('hidden');
+          // 스크롤 복원
+          document.body.style.position = '';
+          document.body.style.width = '';
+        });
+      }
+
+      if (mobileFilterModal) {
+        // 모달 외부 클릭 시 닫기
+        mobileFilterModal.addEventListener('click', function(e) {
+          if (e.target === mobileFilterModal) {
+            mobileFilterModal.classList.add('hidden');
+            // 스크롤 복원
+            document.body.style.position = '';
+            document.body.style.width = '';
+          }
+        });
+      }
+
+      if (clearFilters) {
+        // 전체 해제 버튼
+        clearFilters.addEventListener('click', function() {
+          const checkboxes = mobileFilterModal.querySelectorAll('input[type="checkbox"]');
+          const radios = mobileFilterModal.querySelectorAll('input[type="radio"]');
+          
+          checkboxes.forEach(checkbox => checkbox.checked = false);
+          radios.forEach(radio => {
+            if (radio.name === 'mobileLocation') {
+              radio.checked = false;
+            }
+          });
+        });
+      }
+
+      if (applyFilters) {
+        // 필터 적용 버튼
+        applyFilters.addEventListener('click', function() {
+          mobileFilterModal.classList.add('hidden');
+          // 스크롤 복원
+          document.body.style.position = '';
+          document.body.style.width = '';
+          // 여기에 필터 적용 로직 추가
+          console.log('필터가 적용되었습니다.');
+        });
+      }
+
+      // 지역 선택 모달 이벤트 리스너
+      const locationBtn = document.getElementById('locationBtn');
+      const locationModal = document.getElementById('locationModal');
+      const closeLocationModal = document.getElementById('closeLocationModal');
+      const currentLocation = document.getElementById('currentLocation');
+
+      if (locationBtn) {
+        locationBtn.addEventListener('click', function() {
+          locationModal.classList.remove('hidden');
+          // 스크롤 방지 (overflow 대신 position: fixed 사용)
+          document.body.style.position = 'fixed';
+          document.body.style.width = '100%';
+        });
+      }
+
+      if (closeLocationModal) {
+        closeLocationModal.addEventListener('click', function() {
+          locationModal.classList.add('hidden');
+          // 스크롤 복원
+          document.body.style.position = '';
+          document.body.style.width = '';
+        });
+      }
+
+      if (locationModal) {
+        // 모달 외부 클릭 시 닫기
+        locationModal.addEventListener('click', function(e) {
+          if (e.target === locationModal) {
+            locationModal.classList.add('hidden');
+            // 스크롤 복원
+            document.body.style.position = '';
+            document.body.style.width = '';
+          }
+        });
+      }
+
+      // 지역 선택 버튼들
+      const locationButtons = locationModal.querySelectorAll('button');
+      locationButtons.forEach(button => {
+        if (button.textContent.includes('시') || button.textContent.includes('구') || button.textContent.includes('동') || button.textContent.includes('읍')) {
+          button.addEventListener('click', function() {
+            const locationText = this.textContent.trim();
+            // 지역명에서 구/동/읍 부분만 추출
+            const locationParts = locationText.split(',');
+            const selectedLocation = locationParts[locationParts.length - 1].trim();
+            currentLocation.textContent = selectedLocation;
+            locationModal.classList.add('hidden');
+            // 스크롤 복원
+            document.body.style.position = '';
+            document.body.style.width = '';
+            
+            // 여기에 지역 변경 후 필터링 로직 추가
+            console.log('지역이 변경되었습니다:', selectedLocation);
+          });
+        }
+      });
+
+      // 모바일 메뉴 이벤트 리스너
+      const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+      const mobileMenu = document.getElementById('mobileMenu');
+      const closeMobileMenu = document.getElementById('closeMobileMenu');
+      const mobileMenuOverlay = document.getElementById('mobileMenuOverlay');
+
+      if (mobileMenuBtn) {
+        mobileMenuBtn.addEventListener('click', function() {
+          mobileMenu.classList.remove('hidden');
+          // 현재 스크롤 위치 저장
+          const scrollY = window.scrollY;
+          document.body.style.position = 'fixed';
+          document.body.style.top = `-${scrollY}px`;
+          document.body.style.width = '100%';
+          // 스크롤 위치를 sessionStorage에 저장
+          sessionStorage.setItem('scrollPosition', scrollY);
+        });
+      }
+
+      if (closeMobileMenu) {
+        closeMobileMenu.addEventListener('click', function() {
+          mobileMenu.classList.add('hidden');
+          // 스크롤 위치 복원
+          const scrollY = sessionStorage.getItem('scrollPosition');
+          document.body.style.position = '';
+          document.body.style.top = '';
+          document.body.style.width = '';
+          if (scrollY) {
+            window.scrollTo(0, parseInt(scrollY));
+            sessionStorage.removeItem('scrollPosition');
+          }
+        });
+      }
+
+      if (mobileMenuOverlay) {
+        mobileMenuOverlay.addEventListener('click', function() {
+          mobileMenu.classList.add('hidden');
+          // 스크롤 위치 복원
+          const scrollY = sessionStorage.getItem('scrollPosition');
+          document.body.style.position = '';
+          document.body.style.top = '';
+          document.body.style.width = '';
+          if (scrollY) {
+            window.scrollTo(0, parseInt(scrollY));
+            sessionStorage.removeItem('scrollPosition');
+          }
+        });
+      }
+
+      // 테마 시스템
+      const themeBtn = document.getElementById('themeBtn');
+      const themeModal = document.getElementById('themeModal');
+      const closeThemeModal = document.getElementById('closeThemeModal');
+      const currentTheme = document.getElementById('currentTheme');
+      const themeOptions = document.querySelectorAll('.theme-option');
+
+      // 테마 팔레트 정의
+      const themePalette = {
+        classic: {
+          primary: 'from-orange-400 to-orange-500',
+          accent: 'from-orange-400 to-orange-500',
+          text: 'text-orange-300',
+          hover: 'hover:from-orange-500 hover:to-orange-600'
+        },
+        pink: {
+          primary: 'from-pink-400 to-pink-500',
+          accent: 'from-pink-400 to-pink-500',
+          text: 'text-pink-300',
+          hover: 'hover:from-pink-500 hover:to-pink-600'
+        },
+        dark: {
+          primary: 'from-blue-600 to-blue-700',
+          accent: 'from-blue-600 to-blue-700',
+          text: 'text-blue-300',
+          hover: 'hover:from-blue-700 hover:to-blue-800'
+        },
+        modern: {
+          primary: 'from-gray-400 to-gray-500',
+          accent: 'from-gray-400 to-gray-500',
+          text: 'text-gray-300',
+          hover: 'hover:from-gray-500 hover:to-gray-600'
+        }
+      };
+
+      // 현재 테마 (기본값: pink)
+      let currentThemeName = 'pink';
+
+      // 테마 적용 함수
+      function applyTheme(themeName) {
+        const theme = themePalette[themeName];
+        if (!theme) return;
+
+        // 모든 버튼의 클래스 업데이트
+        const buttons = document.querySelectorAll('button[id="locationBtn"], button[id="mapToggle"], button[id="mobileFilterBtn"]');
+        buttons.forEach(button => {
+          button.className = button.className.replace(/bg-gradient-to-r from-\w+-\d+ to-\w+-\d+/g, `bg-gradient-to-r ${theme.primary}`);
+          button.className = button.className.replace(/hover:from-\w+-\d+ hover:to-\w+-\d+/g, theme.hover);
+        });
+
+        // 카테고리 필터 버튼들 업데이트
+        const categoryButtons = document.querySelectorAll('#filterSection button');
+        categoryButtons.forEach(button => {
+          if (button.textContent === '전체') {
+            button.className = button.className.replace(/bg-gradient-to-r from-\w+-\d+ to-\w+-\d+/g, `bg-gradient-to-r ${theme.primary}`);
+          }
+          button.className = button.className.replace(/hover:bg-\w+-\d+/g, theme.hover.replace('hover:', ''));
+        });
+
+        // 태그들 업데이트
+        const tags = document.querySelectorAll('.flex.items-center.gap-1.mt-2 span:first-child');
+        tags.forEach(tag => {
+          tag.className = tag.className.replace(/bg-gradient-to-r from-\w+-\d+ to-\w+-\d+/g, `bg-gradient-to-r ${theme.primary}`);
+        });
+
+        // 플레이 버튼 업데이트
+        const playButton = document.querySelector('.w-16.h-16.bg-gradient-to-r');
+        if (playButton) {
+          playButton.className = playButton.className.replace(/bg-gradient-to-r from-\w+-\d+ to-\w+-\d+/g, `bg-gradient-to-r ${theme.primary}`);
+        }
+
+        // 브랜드명 색상 업데이트
+        const brandNames = document.querySelectorAll('.text-pink-300, .text-orange-300, .text-blue-300, .text-gray-300');
+        brandNames.forEach(brand => {
+          brand.className = brand.className.replace(/text-\w+-\d+/g, theme.text);
+        });
+
+        // 현재 테마 표시 업데이트
+        if (currentTheme) {
+          currentTheme.textContent = themeName === 'classic' ? '클래식' : 
+                                   themeName === 'pink' ? '핑크' : 
+                                   themeName === 'dark' ? '다크' : '모던';
+          currentTheme.className = currentTheme.className.replace(/text-\w+-\d+/g, theme.text);
+        }
+
+        // 로컬 스토리지에 저장
+        localStorage.setItem('selectedTheme', themeName);
+        currentThemeName = themeName;
+      }
+
+      // 테마 버튼 클릭 이벤트
+      if (themeBtn) {
+        themeBtn.addEventListener('click', function() {
+          themeModal.classList.remove('hidden');
+          // 스크롤 방지
+          document.body.style.position = 'fixed';
+          document.body.style.width = '100%';
+        });
+      }
+
+      // 테마 모달 닫기
+      if (closeThemeModal) {
+        closeThemeModal.addEventListener('click', function() {
+          themeModal.classList.add('hidden');
+          // 스크롤 복원
+          document.body.style.position = '';
+          document.body.style.width = '';
+        });
+      }
+
+      // 테마 모달 외부 클릭 시 닫기
+      if (themeModal) {
+        themeModal.addEventListener('click', function(e) {
+          if (e.target === themeModal) {
+            themeModal.classList.add('hidden');
+            // 스크롤 복원
+            document.body.style.position = '';
+            document.body.style.width = '';
+          }
+        });
+      }
+
+      // 테마 옵션 클릭 이벤트
+      themeOptions.forEach(option => {
+        option.addEventListener('click', function() {
+          const selectedTheme = this.getAttribute('data-theme');
+          applyTheme(selectedTheme);
+          themeModal.classList.add('hidden');
+          // 스크롤 복원
+          document.body.style.position = '';
+          document.body.style.width = '';
+        });
+      });
+
+      // 페이지 로드 시 저장된 테마 적용
+      const savedTheme = localStorage.getItem('selectedTheme');
+      if (savedTheme && savedTheme !== 'pink') {
+        applyTheme(savedTheme);
+      }
+
+      // 로컬스토리지 기반 찜/방문기록 시스템
+      const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+      const visited = JSON.parse(localStorage.getItem('visited') || '[]');
+
+      // 찜하기 기능
+      function toggleFavorite(placeId) {
+        const index = favorites.indexOf(placeId);
+        if (index > -1) {
+          favorites.splice(index, 1);
+        } else {
+          favorites.push(placeId);
+        }
+        localStorage.setItem('favorites', JSON.stringify(favorites));
+        updateFavoriteUI(placeId);
+      }
+
+      // 방문기록 기능
+      function toggleVisited(placeId) {
+        const index = visited.indexOf(placeId);
+        if (index > -1) {
+          visited.splice(index, 1);
+        } else {
+          visited.push(placeId);
+        }
+        localStorage.setItem('visited', JSON.stringify(visited));
+        updateVisitedUI(placeId);
+      }
+
+      // 찜 UI 업데이트
+      function updateFavoriteUI(placeId) {
+        const favoriteBtn = document.querySelector(`[data-place-id="${placeId}"][data-action="favorite"]`);
+        if (favoriteBtn) {
+          const isFavorited = favorites.includes(placeId);
+          favoriteBtn.innerHTML = isFavorited ? '❤️' : '🤍';
+          favoriteBtn.classList.toggle('text-red-500', isFavorited);
+        }
+      }
+
+      // 방문기록 UI 업데이트
+      function updateVisitedUI(placeId) {
+        const visitedBtn = document.querySelector(`[data-place-id="${placeId}"][data-action="visited"]`);
+        if (visitedBtn) {
+          const isVisited = visited.includes(placeId);
+          visitedBtn.innerHTML = isVisited ? '✅' : '⭕';
+          visitedBtn.classList.toggle('text-green-500', isVisited);
+        }
+      }
+
+      // 페이지 로드 시 UI 상태 복원
+      document.addEventListener('DOMContentLoaded', function() {
+        // 모든 찜/방문기록 버튼에 이벤트 리스너 추가
+        document.querySelectorAll('[data-action="favorite"]').forEach(btn => {
+          btn.addEventListener('click', function() {
+            const placeId = this.getAttribute('data-place-id');
+            toggleFavorite(placeId);
+          });
+          // 초기 상태 설정
+          const placeId = btn.getAttribute('data-place-id');
+          updateFavoriteUI(placeId);
+        });
+
+        document.querySelectorAll('[data-action="visited"]').forEach(btn => {
+          btn.addEventListener('click', function() {
+            const placeId = this.getAttribute('data-place-id');
+            toggleVisited(placeId);
+          });
+          // 초기 상태 설정
+          const placeId = btn.getAttribute('data-place-id');
+          updateVisitedUI(placeId);
+        });
+      });
+
+      // 숏츠 옵션 메뉴 토글 기능
+      const shortsMoreBtn = document.getElementById('shortsMoreBtn');
+      const shortsOptionsMenu = document.getElementById('shortsOptionsMenu');
+      
+      if (shortsMoreBtn && shortsOptionsMenu) {
+        shortsMoreBtn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          shortsOptionsMenu.classList.toggle('hidden');
+        });
+        
+        // 메뉴 외부 클릭 시 닫기
+        document.addEventListener('click', function(e) {
+          if (!shortsMoreBtn.contains(e.target) && !shortsOptionsMenu.contains(e.target)) {
+            shortsOptionsMenu.classList.add('hidden');
+          }
+        });
+        
+        // 옵션 메뉴 버튼들에 이벤트 리스너 추가
+        const menuButtons = shortsOptionsMenu.querySelectorAll('button');
+        menuButtons.forEach(button => {
+          button.addEventListener('click', function() {
+            const action = this.querySelector('span').textContent;
+            console.log('Shorts option clicked:', action);
+            
+            // 여기에 실제 기능 구현
+            if (action === 'Show fewer Shorts') {
+              // 숏츠 섹션 숨기기 또는 필터링
+              const shortsSection = document.querySelector('.px-6.py-4.bg-black.border-b.border-gray-800');
+              if (shortsSection) {
+                shortsSection.style.display = 'none';
+              }
+            } else if (action === 'Not interested') {
+              // 관심 없음 처리
+              alert('관심 없음으로 표시되었습니다.');
+            } else if (action === 'Report') {
+              // 신고 처리
+              alert('신고가 접수되었습니다.');
+            }
+            
+            // 메뉴 닫기
+            shortsOptionsMenu.classList.add('hidden');
+          });
+        });
+      }
+
+      // 스크롤 기반 검색 기능
+      const headerSearchBtn = document.getElementById('headerSearchBtn');
+      const floatingSearchSection = document.getElementById('floatingSearchSection');
+      const closeFloatingSearch = document.getElementById('closeFloatingSearch');
+      const originalSearchSection = document.getElementById('searchSection');
+      
+      let isSearchVisible = false;
+      let lastScrollTop = 0;
+      
+      // 스크롤 이벤트 리스너
+      window.addEventListener('scroll', function() {
+        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+        const searchSectionBottom = originalSearchSection.offsetTop + originalSearchSection.offsetHeight;
+        
+        // 검색 섹션이 화면에서 벗어났을 때 헤더 검색 버튼 표시
+        if (scrollTop > searchSectionBottom) {
+          headerSearchBtn.style.display = 'block';
+          headerSearchBtn.classList.remove('opacity-0', 'pointer-events-none');
+          headerSearchBtn.classList.add('opacity-100');
+        } else {
+          headerSearchBtn.classList.remove('opacity-100');
+          headerSearchBtn.classList.add('opacity-0', 'pointer-events-none');
+          setTimeout(() => {
+            if (headerSearchBtn.classList.contains('opacity-0')) {
+              headerSearchBtn.style.display = 'none';
+            }
+          }, 300);
+        }
+        
+        lastScrollTop = scrollTop;
+      });
+      
+      // 헤더 검색 버튼 클릭 이벤트
+      if (headerSearchBtn) {
+        headerSearchBtn.addEventListener('click', function() {
+          showFloatingSearch();
+        });
+      }
+      
+      // 플로팅 검색 닫기 버튼 클릭 이벤트
+      if (closeFloatingSearch) {
+        closeFloatingSearch.addEventListener('click', function() {
+          hideFloatingSearch();
+        });
+      }
+      
+      // 플로팅 검색 표시 함수
+      function showFloatingSearch() {
+        floatingSearchSection.classList.remove('-translate-y-full');
+        floatingSearchSection.classList.add('translate-y-0');
+        isSearchVisible = true;
+        
+        // 검색 입력 필드에 포커스
+        const searchInput = floatingSearchSection.querySelector('input');
+        if (searchInput) {
+          setTimeout(() => {
+            searchInput.focus();
+          }, 300);
+        }
+      }
+      
+      // 플로팅 검색 숨기기 함수
+      function hideFloatingSearch() {
+        floatingSearchSection.classList.remove('translate-y-0');
+        floatingSearchSection.classList.add('-translate-y-full');
+        isSearchVisible = false;
+      }
+      
+      // ESC 키로 플로팅 검색 닫기
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && isSearchVisible) {
+          hideFloatingSearch();
+        }
+      });
+      
+      // 데이터 내보내기 기능 (나중에 회원가입 시 사용)
+      function exportUserData() {
+        const userData = {
+          favorites: favorites,
+          visited: visited,
+          exportDate: new Date().toISOString()
+        };
+        const dataStr = JSON.stringify(userData, null, 2);
+        const dataBlob = new Blob([dataStr], {type: 'application/json'});
+        const url = URL.createObjectURL(dataBlob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = '돼동여지도_데이터.json';
+        link.click();
+        URL.revokeObjectURL(url);
+      }
+    </script>
+  </body>
+</html>
