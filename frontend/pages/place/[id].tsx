@@ -1,8 +1,6 @@
 import React, { useEffect } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
-import Header from '../../components/layout/Header';
-import Footer from '../../components/layout/Footer';
 import Link from 'next/link';
 
 // 샘플 데이터
@@ -193,13 +191,7 @@ export default function PlaceDetailPage() {
     };
   }, []);
 
-  const handleLocationClick = () => {
-    console.log('지역 설정 클릭');
-  };
 
-  const handleMapToggle = () => {
-    console.log('지도 토글 클릭');
-  };
 
   const handleTimestampClick = (timestamp) => {
     const videoElement = document.querySelector('iframe');
@@ -233,14 +225,7 @@ export default function PlaceDetailPage() {
         `}</style>
       </Head>
 
-      <div className="min-h-screen bg-black text-white">
-        <Header 
-          onLocationClick={handleLocationClick}
-          onMapToggle={handleMapToggle}
-          isMapMode={false}
-        />
-
-        <div className="pt-16">
+      <>
           {/* 브레드크럼 */}
           <div className="px-6 py-3 border-b border-gray-800">
             <nav className="text-sm text-gray-400">
@@ -588,10 +573,7 @@ export default function PlaceDetailPage() {
               ))}
             </div>
           </section>
-        </div>
-
-        <Footer />
-      </div>
+      </>
     </>
   );
 }
