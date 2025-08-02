@@ -23,8 +23,8 @@ interface Place {
   viewCount: string;
 }
 
-// Google Maps API 키 (실제 환경에서는 환경변수로 관리)
-const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '';
+// 카카오맵 API 키 (실제 환경에서는 환경변수로 관리)
+const KAKAO_MAP_API_KEY = process.env.NEXT_PUBLIC_KAKAO_MAP_API_KEY || 'b3e9e8ea77f4ea9745516bd4b2e39e21';
 
 // 샘플 이미지 URL (안정적인 이미지 사용)
 const SAMPLE_IMAGES = [
@@ -102,34 +102,109 @@ export default function MapPage() {
   const [showFilters, setShowFilters] = useState(false);
   const [distanceFilter, setDistanceFilter] = useState('3km');
   const [youtuberCountFilter, setYoutuberCountFilter] = useState('1');
-  const [map, setMap] = useState<google.maps.Map | null>(null);
-  const [markers, setMarkers] = useState<google.maps.Marker[]>([]);
+  const [map, setMap] = useState<any>(null);
+  const [clusterer, setClusterer] = useState<any>(null);
+  const [zoomLevel, setZoomLevel] = useState(3);
+  const [selectedPlaceIndex, setSelectedPlaceIndex] = useState(0);
+  const [showVideoSlider, setShowVideoSlider] = useState(true);
+  const [isKakaoLoaded, setIsKakaoLoaded] = useState(false);
   const mapRef = useRef<HTMLDivElement>(null);
+  const sliderRef = useRef<HTMLDivElement>(null);
+  const markersRef = useRef<any[]>([]);
 
-  // Google Maps API 로드
+  // 카카오맵 API 로드
   useEffect(() => {
-    if (!GOOGLE_MAPS_API_KEY) {
-      console.warn('Google Maps API 키가 설정되지 않았습니다. 환경변수 NEXT_PUBLIC_GOOGLE_MAPS_API_KEY를 설정해주세요.');
+    console.log('카카오맵 API 키:', KAKAO_MAP_API_KEY ? '설정됨' : '미설정');
+    
+    if (!KAKAO_MAP_API_KEY) {
+      console.warn('카카오맵 API 키가 설정되지 않았습니다.');
+      setIsKakaoLoaded(false);
       return;
     }
 
-    const loadGoogleMapsAPI = () => {
-      if (window.google && window.google.maps) {
-        return Promise.resolve();
-      }
-
+    const loadKakaoMapScript = () => {
       return new Promise<void>((resolve, reject) => {
+        // 기존 스크립트 제거
+        const existingScript = document.querySelector('script[src*="dapi.kakao.com"]');
+        if (existingScript) {
+          existingScript.remove();
+          console.log('기존 카카오맵 스크립트 제거');
+        }
+
+        // window.kakao 초기화
+        if (window.kakao) {
+          delete (window as any).kakao;
+          console.log('기존 kakao 객체 제거');
+        }
+
         const script = document.createElement('script');
-        script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=places`;
-        script.async = true;
-        script.defer = true;
-        script.onload = () => resolve();
-        script.onerror = () => reject(new Error('Google Maps API 로드 실패'));
+        script.type = 'text/javascript';
+        script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${KAKAO_MAP_API_KEY}&autoload=false&libraries=clusterer`;
+        
+        script.onload = () => {
+          console.log('카카오맵 스크립트 로드 완료');
+          
+          // 잠시 대기 후 kakao 객체 확인
+          setTimeout(() => {
+            if (window.kakao && window.kakao.maps) {
+              console.log('window.kakao.maps 확인됨');
+              
+              // maps.load 호출
+              window.kakao.maps.load(() => {
+                console.log('kakao.maps.load 완료');
+                
+                // 필요한 객체들 확인
+                const checks = {
+                  LatLng: !!window.kakao.maps.LatLng,
+                  Map: !!window.kakao.maps.Map,
+                  Marker: !!window.kakao.maps.Marker,
+                  MarkerClusterer: !!window.kakao.maps.MarkerClusterer,
+                  event: !!window.kakao.maps.event
+                };
+                
+                console.log('카카오맵 객체 확인:', checks);
+                
+                if (checks.LatLng && checks.Map && checks.Marker) {
+                  console.log('✅ 카카오맵 로딩 성공!');
+                  resolve();
+                } else {
+                  console.error('❌ 필수 카카오맵 객체 누락');
+                  reject(new Error('필수 객체 누락'));
+                }
+              });
+            } else {
+              console.error('❌ window.kakao.maps 없음');
+              reject(new Error('카카오맵 객체 없음'));
+            }
+          }, 100);
+        };
+        
+        script.onerror = (error) => {
+          console.error('❌ 카카오맵 스크립트 로드 실패:', error);
+          reject(new Error('스크립트 로드 실패'));
+        };
+        
         document.head.appendChild(script);
+        console.log('카카오맵 스크립트 추가됨');
       });
     };
 
-    loadGoogleMapsAPI().catch(console.error);
+    loadKakaoMapScript()
+      .then(() => {
+        setIsKakaoLoaded(true);
+      })
+      .catch((error) => {
+        console.error('카카오맵 로딩 실패:', error);
+        setIsKakaoLoaded(false);
+        
+        // 3초 후 재시도
+        setTimeout(() => {
+          console.log('카카오맵 로딩 재시도...');
+          loadKakaoMapScript()
+            .then(() => setIsKakaoLoaded(true))
+            .catch(() => setIsKakaoLoaded(false));
+        }, 3000);
+      });
   }, []);
 
   // 현재 위치 가져오기
@@ -193,101 +268,169 @@ export default function MapPage() {
 
   // 지도 초기화
   useEffect(() => {
-    if (!pos || !mapRef.current || !window.google) return;
+    if (!pos || !mapRef.current || !isKakaoLoaded) {
+      console.log('지도 초기화 조건 미충족:', { pos, mapRef: mapRef.current, isKakaoLoaded });
+      return;
+    }
 
-    const mapInstance = new google.maps.Map(mapRef.current, {
-      center: pos,
-      zoom: 15,
-      styles: [
-        {
-          featureType: 'all',
-          elementType: 'labels.text.fill',
-          stylers: [{ color: '#ffffff' }]
-        },
-        {
-          featureType: 'all',
-          elementType: 'labels.text.stroke',
-          stylers: [{ color: '#000000' }, { lightness: 13 }]
-        },
-        {
-          featureType: 'administrative',
-          elementType: 'geometry.fill',
-          stylers: [{ color: '#000000' }]
-        },
-        {
-          featureType: 'landscape',
-          elementType: 'geometry',
-          stylers: [{ color: '#000000' }]
-        },
-        {
-          featureType: 'poi',
-          elementType: 'geometry',
-          stylers: [{ color: '#000000' }]
-        },
-        {
-          featureType: 'road',
-          elementType: 'geometry',
-          stylers: [{ color: '#000000' }]
-        },
-        {
-          featureType: 'transit',
-          elementType: 'geometry',
-          stylers: [{ color: '#000000' }]
-        },
-        {
-          featureType: 'water',
-          elementType: 'geometry',
-          stylers: [{ color: '#000000' }]
-        }
-      ]
+    if (!window.kakao || !window.kakao.maps || !window.kakao.maps.LatLng) {
+      console.log('카카오맵 API 객체가 준비되지 않았습니다.');
+      return;
+    }
+
+    console.log('지도 초기화 시작', { pos });
+    console.log('사용 가능한 kakao.maps 객체들:', {
+      LatLng: !!window.kakao.maps.LatLng,
+      Map: !!window.kakao.maps.Map,
+      Marker: !!window.kakao.maps.Marker,
+      MarkerClusterer: !!window.kakao.maps.MarkerClusterer
     });
 
-    setMap(mapInstance);
-  }, [pos]);
+    try {
+      // LatLng 생성 테스트
+      const centerLatLng = new window.kakao.maps.LatLng(pos.lat, pos.lng);
+      console.log('LatLng 생성 성공:', centerLatLng);
+
+      const options = {
+        center: centerLatLng,
+        level: 3 // 레벨 3 (약 500m 반경)
+      };
+
+      const mapInstance = new window.kakao.maps.Map(mapRef.current, options);
+      console.log('지도 인스턴스 생성됨:', mapInstance);
+      
+      // 줌 레벨 변경 이벤트 등록
+      window.kakao.maps.event.addListener(mapInstance, 'zoom_changed', () => {
+        const level = mapInstance.getLevel();
+        console.log('줌 레벨 변경:', level);
+        setZoomLevel(level);
+        
+        // 줌 레벨에 따라 비디오 슬라이더 표시 여부 결정
+        setShowVideoSlider(level <= 5); // 레벨 5 이하에서만 비디오 슬라이더 표시
+      });
+
+      // 클러스터러 초기화 (MarkerClusterer가 있는 경우만)
+      let clustererInstance = null;
+      if (window.kakao.maps.MarkerClusterer) {
+        clustererInstance = new window.kakao.maps.MarkerClusterer({
+          map: mapInstance,
+          averageCenter: true,
+          minLevel: 6, // 레벨 6 이상에서 클러스터링
+          disableClickZoom: true,
+          calculator: [10, 30, 50], // 클러스터 단계
+          styles: [
+            {
+              width: '30px',
+              height: '30px',
+              background: 'rgba(236, 72, 153, 0.8)',
+              borderRadius: '15px',
+              color: '#fff',
+              textAlign: 'center',
+              fontWeight: 'bold',
+              lineHeight: '30px'
+            },
+            {
+              width: '40px',
+              height: '40px',
+              background: 'rgba(236, 72, 153, 0.8)',
+              borderRadius: '20px',
+              color: '#fff',
+              textAlign: 'center',
+              fontWeight: 'bold',
+              lineHeight: '40px'
+            },
+            {
+              width: '50px',
+              height: '50px',
+              background: 'rgba(236, 72, 153, 0.8)',
+              borderRadius: '25px',
+              color: '#fff',
+              textAlign: 'center',
+              fontWeight: 'bold',
+              lineHeight: '50px'
+            }
+          ]
+        });
+        console.log('클러스터러 생성됨:', clustererInstance);
+      } else {
+        console.warn('MarkerClusterer를 사용할 수 없습니다. 기본 마커만 사용합니다.');
+      }
+
+      setMap(mapInstance);
+      setClusterer(clustererInstance);
+      
+    } catch (error) {
+      console.error('지도 초기화 중 오류:', error);
+    }
+  }, [pos, isKakaoLoaded]);
 
   // 마커 생성
   useEffect(() => {
-    if (!map || !window.google) return;
+    if (!map || !window.kakao) return;
 
     // 기존 마커 제거
-    markers.forEach(marker => marker.setMap(null));
+    if (clusterer) {
+      clusterer.clear();
+    } else {
+      // 클러스터러가 없는 경우 개별 마커 제거
+      markersRef.current.forEach(marker => marker.setMap(null));
+    }
 
-    const newMarkers: google.maps.Marker[] = [];
+    const newMarkers: any[] = [];
 
-    filteredPlaces.forEach(place => {
-      const marker = new google.maps.Marker({
-        position: { lat: place.lat, lng: place.lng },
-        map: map,
-        title: place.title,
-        icon: {
-          url: place.isFavorite 
-            ? 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
-              <svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="16" cy="16" r="16" fill="#ec4899"/>
-                <path d="M16 24.35l-1.45-1.32C9.4 18.36 6 15.28 6 11.5 6 8.42 8.42 6 11.5 6c1.74 0 3.41.81 4.5 2.09C17.59 6.81 19.26 6 21 6c3.08 0 5.5 2.42 5.5 5.5 0 3.78-3.4 6.86-8.55 11.54L16 24.35z" fill="white"/>
-              </svg>
-            `)
-            : 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
-              <svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="16" cy="16" r="16" fill="#6b7280"/>
-                <path d="M16 24.35l-1.45-1.32C9.4 18.36 6 15.28 6 11.5 6 8.42 8.42 6 11.5 6c1.74 0 3.41.81 4.5 2.09C17.59 6.81 19.26 6 21 6c3.08 0 5.5 2.42 5.5 5.5 0 3.78-3.4 6.86-8.55 11.54L16 24.35z" fill="white"/>
-              </svg>
-            `),
-          scaledSize: new google.maps.Size(32, 32),
-          anchor: new google.maps.Point(16, 16)
-        }
+    filteredPlaces.forEach((place, index) => {
+      const markerPosition = new window.kakao.maps.LatLng(place.lat, place.lng);
+      
+      // 마커 이미지 생성
+      const imageSrc = place.isFavorite 
+        ? 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
+          <svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="16" cy="16" r="16" fill="#ec4899"/>
+            <path d="M16 24.35l-1.45-1.32C9.4 18.36 6 15.28 6 11.5 6 8.42 8.42 6 11.5 6c1.74 0 3.41.81 4.5 2.09C17.59 6.81 19.26 6 21 6c3.08 0 5.5 2.42 5.5 5.5 0 3.78-3.4 6.86-8.55 11.54L16 24.35z" fill="white"/>
+          </svg>
+        `)
+        : 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
+          <svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="16" cy="16" r="16" fill="#6b7280"/>
+            <path d="M16 24.35l-1.45-1.32C9.4 18.36 6 15.28 6 11.5 6 8.42 8.42 6 11.5 6c1.74 0 3.41.81 4.5 2.09C17.59 6.81 19.26 6 21 6c3.08 0 5.5 2.42 5.5 5.5 0 3.78-3.4 6.86-8.55 11.54L16 24.35z" fill="white"/>
+          </svg>
+        `);
+      
+      const imageSize = new window.kakao.maps.Size(32, 32);
+      const imageOption = { offset: new window.kakao.maps.Point(16, 16) };
+      const markerImage = new window.kakao.maps.MarkerImage(imageSrc, imageSize, imageOption);
+      
+      const marker = new window.kakao.maps.Marker({
+        position: markerPosition,
+        image: markerImage,
+        title: place.title
       });
 
       // 마커 클릭 이벤트
-      marker.addListener('click', () => {
+      window.kakao.maps.event.addListener(marker, 'click', () => {
         setSelectedPlace(place);
+        setSelectedPlaceIndex(index);
+        
+        // 슬라이더를 해당 아이템으로 스크롤
+        if (sliderRef.current && showVideoSlider) {
+          const itemWidth = 272; // 각 아이템의 너비
+          const scrollLeft = index * itemWidth - (sliderRef.current.clientWidth / 2) + (itemWidth / 2);
+          sliderRef.current.scrollTo({ left: scrollLeft, behavior: 'smooth' });
+        }
       });
 
       newMarkers.push(marker);
     });
 
-    setMarkers(newMarkers);
-  }, [map, filteredPlaces, markers]);
+    // 클러스터러가 있으면 클러스터러에 추가, 없으면 개별 마커로 지도에 추가
+    if (clusterer) {
+      clusterer.addMarkers(newMarkers);
+    } else {
+      newMarkers.forEach(marker => marker.setMap(map));
+    }
+    
+    markersRef.current = newMarkers;
+  }, [map, clusterer, filteredPlaces, showVideoSlider]);
 
   const handleLocationClick = () => {
     console.log('지역 설정 클릭');
@@ -331,8 +474,48 @@ export default function MapPage() {
   };
 
   const handleGetDirections = (place: Place) => {
-    const url = `https://www.google.com/maps/dir/?api=1&destination=${place.lat},${place.lng}`;
+    const url = `https://map.kakao.com/link/to/${place.title},${place.lat},${place.lng}`;
     window.open(url, '_blank');
+  };
+
+  // 슬라이더 스크롤 이벤트 처리
+  const handleSliderScroll = () => {
+    if (!sliderRef.current || !showVideoSlider) return;
+    
+    const slider = sliderRef.current;
+    const itemWidth = 272; // 각 아이템의 너비 (w-64 + gap-4)
+    const scrollLeft = slider.scrollLeft;
+    const centerPosition = scrollLeft + (slider.clientWidth / 2);
+    const newIndex = Math.round(centerPosition / itemWidth);
+    
+    if (newIndex !== selectedPlaceIndex && newIndex >= 0 && newIndex < filteredPlaces.length) {
+      setSelectedPlaceIndex(newIndex);
+      
+      // 선택된 장소로 지도 중심 이동
+      const selectedPlace = filteredPlaces[newIndex];
+      if (map && selectedPlace && window.kakao && window.kakao.maps) {
+        const moveLatLng = new window.kakao.maps.LatLng(selectedPlace.lat, selectedPlace.lng);
+        map.panTo(moveLatLng);
+      }
+    }
+  };
+
+  // 슬라이더 아이템 클릭 핸들러
+  const handleSliderItemClick = (place: Place, index: number) => {
+    setSelectedPlaceIndex(index);
+    
+    // 지도 중심을 해당 위치로 이동
+    if (map && window.kakao && window.kakao.maps) {
+      const moveLatLng = new window.kakao.maps.LatLng(place.lat, place.lng);
+      map.panTo(moveLatLng);
+    }
+    
+    // 슬라이더를 해당 아이템으로 스크롤
+    if (sliderRef.current) {
+      const itemWidth = 272;
+      const scrollLeft = index * itemWidth - (sliderRef.current.clientWidth / 2) + (itemWidth / 2);
+      sliderRef.current.scrollTo({ left: scrollLeft, behavior: 'smooth' });
+    }
   };
 
   if (!pos) {
@@ -346,7 +529,214 @@ export default function MapPage() {
     );
   }
 
-  if (!GOOGLE_MAPS_API_KEY) {
+  // 카카오맵이 로드되지 않았을 때 임시 지도 표시
+  if (!isKakaoLoaded) {
+    return (
+      <>
+        <Head>
+          <title>맛집 지도 - 돼동여지도</title>
+          <meta name="description" content="주변 맛집을 지도에서 확인해보세요" />
+        </Head>
+
+        <div className="min-h-screen bg-black text-white">
+          <Header 
+            onLocationClick={handleLocationClick}
+            onMapToggle={handleMapToggle}
+            isMapMode={true}
+            showSearchSection={false}
+          />
+
+          <div className="pt-16">
+            {/* 검색 및 필터 섹션 */}
+            <div className="absolute top-16 left-0 right-0 z-10 bg-black bg-opacity-90 backdrop-blur-sm">
+              <div className="px-6 py-4">
+                <form onSubmit={handleSearch} className="flex items-center gap-2">
+                  <div className="flex-1 relative">
+                    <input 
+                      type="text" 
+                      placeholder="맛집, 메뉴, 유튜버 검색" 
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="w-full px-4 py-2 bg-gray-800 text-white rounded-full text-sm pl-10" 
+                    />
+                    <svg className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    </svg>
+                  </div>
+                  <button 
+                    type="button"
+                    onClick={handleVoiceSearch}
+                    className="p-2 bg-gray-800 rounded-full hover:bg-gray-700"
+                  >
+                    <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path>
+                    </svg>
+                  </button>
+                </form>
+              </div>
+
+              <div className="px-6 py-3 border-b border-gray-800">
+                <CategoryFilter 
+                  selectedCategory={selectedCategory}
+                  onCategoryChange={setSelectedCategory}
+                />
+              </div>
+
+              <div className="px-6 py-3 flex justify-between items-center">
+                <button 
+                  onClick={() => setShowFilters(!showFilters)}
+                  className="flex items-center gap-2 bg-gradient-to-r from-pink-400 to-pink-500 text-white px-4 py-2 rounded-lg hover:from-pink-500 hover:to-pink-600 transition-all duration-200"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
+                  </svg>
+                  <span>필터</span>
+                </button>
+                
+                <div className="text-sm text-gray-400">
+                  {filteredPlaces.length}개의 맛집
+                </div>
+              </div>
+
+              {showFilters && (
+                <div className="px-6 py-4 border-b border-gray-800 bg-gray-900">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-400 mb-2">거리</label>
+                      <select 
+                        value={distanceFilter}
+                        onChange={(e) => setDistanceFilter(e.target.value)}
+                        className="w-full px-3 py-2 bg-gray-800 text-white rounded-lg text-sm"
+                      >
+                        <option value="500m">500m</option>
+                        <option value="1km">1km</option>
+                        <option value="3km">3km</option>
+                        <option value="5km">5km</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-400 mb-2">유튜버 방문수</label>
+                      <select 
+                        value={youtuberCountFilter}
+                        onChange={(e) => setYoutuberCountFilter(e.target.value)}
+                        className="w-full px-3 py-2 bg-gray-800 text-white rounded-lg text-sm"
+                      >
+                        <option value="1">1명 이상</option>
+                        <option value="3">3명 이상</option>
+                        <option value="5">5명 이상</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* 임시 지도 컨테이너 */}
+            <div className="relative w-full h-screen">
+              {/* 임시 지도 영역 */}
+              <div className="absolute inset-0 w-full h-full min-h-[500px] bg-gray-800 flex items-center justify-center">
+                <div className="text-center">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-500 mx-auto mb-4"></div>
+                  <p className="text-white">카카오맵을 로드하는 중...</p>
+                  <div className="mt-4 text-sm text-gray-400">
+                    <div>위치: {pos ? '✅' : '❌'}</div>
+                    <div>카카오맵: {isKakaoLoaded ? '✅' : '❌'}</div>
+                    <div>API 키: {KAKAO_MAP_API_KEY ? '✅' : '❌'}</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* 하단 비디오 슬라이더 */}
+              {filteredPlaces.length > 0 && (
+                <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-95 backdrop-blur-sm border-t border-gray-700 z-10">
+                  <div className="p-4">
+                    <div className="flex items-center justify-between mb-4">
+                      <h2 className="text-lg font-semibold text-white">주변 맛집 영상</h2>
+                      <span className="text-sm text-gray-400">{filteredPlaces.length}개</span>
+                    </div>
+                    <div 
+                      ref={sliderRef}
+                      className="flex gap-4 overflow-x-auto scrollbar-hide pb-2"
+                      style={{ scrollSnapType: 'x mandatory' }}
+                      onScroll={handleSliderScroll}
+                    >
+                      {filteredPlaces.map((place, index) => (
+                        <div 
+                          key={place.id}
+                          onClick={() => handleSliderItemClick(place, index)}
+                          className={`flex-shrink-0 w-64 bg-gray-900 rounded-lg overflow-hidden cursor-pointer transition-all duration-300 ${
+                            index === selectedPlaceIndex 
+                              ? 'ring-2 ring-pink-500 scale-105' 
+                              : 'hover:bg-gray-800'
+                          }`}
+                          style={{ scrollSnapAlign: 'center' }}
+                        >
+                          <div className="relative">
+                            <img 
+                              src={place.image} 
+                              alt={place.title}
+                              className="w-full h-32 object-cover"
+                              onError={(e) => {
+                                const target = e.target as HTMLImageElement;
+                                target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjg4IiBoZWlnaHQ9IjE2MCIgdmlld0JveD0iMCAwIDI4OCAxNjAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyODgiIGhlaWdodD0iMTYwIiBmaWxsPSIjM0Y0QjU5Ii8+CjxwYXRoIGQ9Ik0xNDQgODBDMzIuMzUgODAgMCAxMTIuMzUgMCAxNDRWMTYwSDI4OFYxNDRDMjg4IDExMi4zNSAyNTUuNjUgODAgMTQ0IDgwWiIgZmlsbD0iIzZCNzI4MCIvPgo8cGF0aCBkPSJNMTA4IDEyMEMyOS4wOSAxMjAgMCAxNDkuMDkgMCAxNjhWMTkySDI4OFYxNjhDMjg4IDE0OS4wOSAyNTguOTEgMTIwIDIzMCAxMjBIMTA4WiIgZmlsbD0iIzZCNzI4MCIvPgo8L3N2Zz4K';
+                              }}
+                            />
+                            <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-30">
+                              <div className="w-12 h-12 bg-white bg-opacity-80 rounded-full flex items-center justify-center">
+                                <svg className="w-6 h-6 text-black ml-1" fill="currentColor" viewBox="0 0 24 24">
+                                  <path d="M8 5v14l11-7z"/>
+                                </svg>
+                              </div>
+                            </div>
+                            <div className="absolute top-2 right-2 bg-black bg-opacity-60 text-white text-xs px-2 py-1 rounded">
+                              {place.distance}
+                            </div>
+                          </div>
+                          
+                          <div className="p-3">
+                            <h3 className="text-sm font-medium text-white mb-1 truncate">{place.title}</h3>
+                            <p className="text-xs text-gray-400 mb-2">{place.youtuberName}</p>
+                            <div className="flex items-center gap-2 text-xs text-gray-500 mb-2">
+                              <span>{place.viewCount}</span>
+                              <span>•</span>
+                              <span>{place.category}</span>
+                            </div>
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs bg-gradient-to-r from-pink-400 to-pink-500 text-white px-2 py-1 rounded">
+                                유튜버 {place.youtuberCount}명 방문
+                              </span>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleFavoriteToggle(place.id);
+                                }}
+                                className={`w-6 h-6 rounded-full flex items-center justify-center ${
+                                  place.isFavorite 
+                                    ? 'bg-gradient-to-r from-pink-400 to-pink-500' 
+                                    : 'bg-gray-700 hover:bg-gray-600'
+                                }`}
+                              >
+                                <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                  <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                                </svg>
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  if (!KAKAO_MAP_API_KEY) {
     return (
       <div className="min-h-screen bg-black text-white flex items-center justify-center">
         <div className="text-center">
@@ -355,12 +745,12 @@ export default function MapPage() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
             </svg>
           </div>
-          <h2 className="text-xl font-semibold mb-2">Google Maps API 키가 필요합니다</h2>
-          <p className="text-gray-400 mb-4">지도 기능을 사용하려면 Google Maps API 키를 설정해주세요.</p>
+          <h2 className="text-xl font-semibold mb-2">카카오맵 API 키가 필요합니다</h2>
+          <p className="text-gray-400 mb-4">지도 기능을 사용하려면 카카오맵 API 키를 설정해주세요.</p>
           <div className="bg-gray-800 p-4 rounded-lg text-sm">
             <p className="mb-2">1. <code className="bg-gray-700 px-2 py-1 rounded">.env.local</code> 파일을 생성하세요</p>
             <p className="mb-2">2. 다음 내용을 추가하세요:</p>
-            <code className="bg-gray-700 px-2 py-1 rounded block">NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=your_api_key_here</code>
+            <code className="bg-gray-700 px-2 py-1 rounded block">NEXT_PUBLIC_KAKAO_MAP_API_KEY=your_api_key_here</code>
           </div>
         </div>
       </div>
@@ -476,68 +866,93 @@ export default function MapPage() {
 
           {/* 지도 컨테이너 */}
           <div className="relative w-full h-screen">
-            {/* Google Maps */}
-            <div ref={mapRef} className="absolute inset-0" />
+            {/* 카카오맵 */}
+            <div ref={mapRef} className="absolute inset-0 w-full h-full min-h-[500px] z-0" />
 
-            {/* 맛집 목록 (우측 사이드바) */}
-            <div className="absolute top-0 right-0 w-80 h-full bg-black bg-opacity-90 backdrop-blur-sm overflow-y-auto">
-              <div className="p-4">
-                <h2 className="text-lg font-semibold text-white mb-4">주변 맛집</h2>
-                <div className="space-y-3">
-                  {filteredPlaces.map((place) => (
-                    <div 
-                      key={place.id}
-                      onClick={() => handlePlaceClick(place)}
-                      className="bg-gray-900 rounded-lg p-3 cursor-pointer hover:bg-gray-800 transition-colors"
-                    >
-                      <div className="flex items-start gap-3">
-                        <img 
-                          src={place.image} 
-                          alt={place.title}
-                          className="w-16 h-12 object-cover rounded"
-                          onError={(e) => {
-                            const target = e.target as HTMLImageElement;
-                            target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjQiIGhlaWdodD0iNDgiIHZpZXdCb3g9IjAgMCA2NCA0OCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjQ4IiBmaWxsPSIjM0Y0QjU5Ii8+CjxwYXRoIGQ9Ik0zMiAyNEMzNC4yMDkxIDI0IDM2IDIyLjIwOTEgMzYgMjBDMzYgMTcuNzkwOSAzNC4yMDkxIDE2IDMyIDE2QzI5Ljc5MDkgMTYgMjggMTcuNzkwOSAyOCAyMEMyOCAyMi4yMDkxIDI5Ljc5MDkgMjQgMzIgMjRaIiBmaWxsPSIjNkI3MjgwIi8+CjxwYXRoIGQ9Ik0yNCAzNkMyNCAzMy43OTA5IDI1Ljc5MDkgMzIgMjggMzJIMzZDMzguMjA5MSAzMiA0MCAzMy43OTA5IDQwIDM2VjQwSDI0VjM2WiIgZmlsbD0iIzZCNzI4MCIvPgo8L3N2Zz4K';
-                          }}
-                        />
-                        <div className="flex-1 min-w-0">
-                          <h3 className="text-sm font-medium text-white mb-1 truncate">{place.title}</h3>
-                          <p className="text-xs text-gray-400 mb-1">{place.youtuberName}</p>
-                          <div className="flex items-center gap-2 text-xs text-gray-500">
-                            <span>📍 {place.distance}</span>
-                            <span>•</span>
-                            <span>{place.viewCount}</span>
+            {/* 하단 비디오 슬라이더 */}
+            {showVideoSlider && filteredPlaces.length > 0 && (
+              <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-95 backdrop-blur-sm border-t border-gray-700">
+                <div className="p-4">
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-lg font-semibold text-white">주변 맛집 영상</h2>
+                    <span className="text-sm text-gray-400">{filteredPlaces.length}개</span>
+                  </div>
+                  <div 
+                    ref={sliderRef}
+                    className="flex gap-4 overflow-x-auto scrollbar-hide pb-2"
+                    style={{ scrollSnapType: 'x mandatory' }}
+                    onScroll={handleSliderScroll}
+                  >
+                    {filteredPlaces.map((place, index) => (
+                      <div 
+                        key={place.id}
+                        onClick={() => handleSliderItemClick(place, index)}
+                        className={`flex-shrink-0 w-64 bg-gray-900 rounded-lg overflow-hidden cursor-pointer transition-all duration-300 ${
+                          index === selectedPlaceIndex 
+                            ? 'ring-2 ring-pink-500 scale-105' 
+                            : 'hover:bg-gray-800'
+                        }`}
+                        style={{ scrollSnapAlign: 'center' }}
+                      >
+                        <div className="relative">
+                          <img 
+                            src={place.image} 
+                            alt={place.title}
+                            className="w-full h-32 object-cover"
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement;
+                              target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjg4IiBoZWlnaHQ9IjE2MCIgdmlld0JveD0iMCAwIDI4OCAxNjAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyODgiIGhlaWdodD0iMTYwIiBmaWxsPSIjM0Y0QjU5Ii8+CjxwYXRoIGQ9Ik0xNDQgODBDMzIuMzUgODAgMCAxMTIuMzUgMCAxNDRWMTYwSDI4OFYxNDRDMjg4IDExMi4zNSAyNTUuNjUgODAgMTQ0IDgwWiIgZmlsbD0iIzZCNzI4MCIvPgo8cGF0aCBkPSJNMTA4IDEyMEMyOS4wOSAxMjAgMCAxNDkuMDkgMCAxNjhWMTkySDI4OFYxNjhDMjg4IDE0OS4wOSAyNTguOTEgMTIwIDIzMCAxMjBIMTA4WiIgZmlsbD0iIzZCNzI4MCIvPgo8L3N2Zz4K';
+                            }}
+                          />
+                          {/* 재생 버튼 오버레이 */}
+                          <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-30">
+                            <div className="w-12 h-12 bg-white bg-opacity-80 rounded-full flex items-center justify-center">
+                              <svg className="w-6 h-6 text-black ml-1" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M8 5v14l11-7z"/>
+                              </svg>
+                            </div>
                           </div>
-                          <div className="flex items-center gap-1 mt-2">
-                            <span className="text-xs bg-gradient-to-r from-pink-400 to-pink-500 text-white px-2 py-0.5 rounded">
-                              유튜버 {place.youtuberCount}명 방문
-                            </span>
-                            <span className="text-xs bg-gray-700 text-gray-300 px-2 py-0.5 rounded">
-                              {place.category}
-                            </span>
+                          {/* 거리 정보 */}
+                          <div className="absolute top-2 right-2 bg-black bg-opacity-60 text-white text-xs px-2 py-1 rounded">
+                            {place.distance}
                           </div>
                         </div>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleFavoriteToggle(place.id);
-                          }}
-                          className={`w-6 h-6 rounded-full flex items-center justify-center ${
-                            place.isFavorite 
-                              ? 'bg-gradient-to-r from-pink-400 to-pink-500' 
-                              : 'bg-gray-700 hover:bg-gray-600'
-                          }`}
-                        >
-                          <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-                          </svg>
-                        </button>
+                        
+                        <div className="p-3">
+                          <h3 className="text-sm font-medium text-white mb-1 truncate">{place.title}</h3>
+                          <p className="text-xs text-gray-400 mb-2">{place.youtuberName}</p>
+                          <div className="flex items-center gap-2 text-xs text-gray-500 mb-2">
+                            <span>{place.viewCount}</span>
+                            <span>•</span>
+                            <span>{place.category}</span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs bg-gradient-to-r from-pink-400 to-pink-500 text-white px-2 py-1 rounded">
+                              유튜버 {place.youtuberCount}명 방문
+                            </span>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleFavoriteToggle(place.id);
+                              }}
+                              className={`w-6 h-6 rounded-full flex items-center justify-center ${
+                                place.isFavorite 
+                                  ? 'bg-gradient-to-r from-pink-400 to-pink-500' 
+                                  : 'bg-gray-700 hover:bg-gray-600'
+                              }`}
+                            >
+                              <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                              </svg>
+                            </button>
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
 
             {/* 맛집 상세 정보 모달 */}
             {selectedPlace && (

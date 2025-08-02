@@ -13,6 +13,9 @@ export default function Header({ onLocationClick, onMapToggle, isMapMode, showSe
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isSearchVisible, setIsSearchVisible] = useState(false);
   const [isHeaderSearchVisible, setIsHeaderSearchVisible] = useState(false);
+  const [isLocationPopupVisible, setIsLocationPopupVisible] = useState(false);
+  const [selectedLocation, setSelectedLocation] = useState('강남구');
+  const [searchQuery, setSearchQuery] = useState('');
   const { currentTheme } = useTheme();
 
   // 모바일 메뉴가 열릴 때 스크롤 방지
@@ -77,17 +80,22 @@ export default function Header({ onLocationClick, onMapToggle, isMapMode, showSe
     return () => window.removeEventListener('scroll', handleScroll);
   }, [showSearchSection]);
 
-  // ESC 키로 플로팅 검색 닫기
+  // ESC 키로 플로팅 검색 및 위치 팝업 닫기
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isSearchVisible) {
-        setIsSearchVisible(false);
+      if (e.key === 'Escape') {
+        if (isSearchVisible) {
+          setIsSearchVisible(false);
+        }
+        if (isLocationPopupVisible) {
+          setIsLocationPopupVisible(false);
+        }
       }
     };
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [isSearchVisible]);
+  }, [isSearchVisible, isLocationPopupVisible]);
 
   const showFloatingSearch = () => {
     setIsSearchVisible(true);
@@ -102,6 +110,25 @@ export default function Header({ onLocationClick, onMapToggle, isMapMode, showSe
 
   const hideFloatingSearch = () => {
     setIsSearchVisible(false);
+  };
+
+  const toggleLocationPopup = () => {
+    setIsLocationPopupVisible(!isLocationPopupVisible);
+    if (!isLocationPopupVisible) {
+      setSearchQuery(''); // 팝업이 열릴 때 검색어 초기화
+    }
+  };
+
+  const handleLocationSelect = (location: string) => {
+    setSelectedLocation(location);
+    setIsLocationPopupVisible(false);
+    onLocationClick(); // 부모 컴포넌트에 알림
+  };
+
+  const handleCurrentLocationClick = () => {
+    // 현재 위치 사용 로직 (실제로는 geolocation API 사용)
+    alert('현재 위치를 사용합니다.');
+    setIsLocationPopupVisible(false);
   };
 
   return (
@@ -132,14 +159,14 @@ export default function Header({ onLocationClick, onMapToggle, isMapMode, showSe
         <div className="flex items-center gap-4">
           {/* 지역 설정 버튼 */}
           <button 
-            onClick={onLocationClick}
+            onClick={toggleLocationPopup}
             className="flex items-center gap-2 bg-gradient-to-r from-pink-400 to-pink-500 text-white px-3 py-2 rounded-lg hover:from-pink-500 hover:to-pink-600 transition-all duration-200 shadow-md"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
             </svg>
-            <span className="hidden sm:inline">강남구</span>
+            <span className="hidden sm:inline">{selectedLocation}</span>
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
             </svg>
@@ -219,6 +246,120 @@ export default function Header({ onLocationClick, onMapToggle, isMapMode, showSe
           </button>
         </div>
       </div>
+
+             {/* Location Selection Popup */}
+       {isLocationPopupVisible && (
+         <div 
+           className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-start pt-20"
+           onClick={toggleLocationPopup}
+         >
+           <div 
+             className="bg-gray-900 w-96 rounded-lg shadow-xl border border-gray-700"
+             onClick={(e) => e.stopPropagation()}
+           >
+             {/* Header */}
+             <div className="flex justify-between items-center p-4 border-b border-gray-700">
+               <h2 className="text-white text-lg font-medium">지역 변경</h2>
+               <button 
+                 onClick={toggleLocationPopup}
+                 className="text-gray-400 hover:text-white"
+               >
+                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
+                 </svg>
+               </button>
+             </div>
+
+             {/* Content */}
+             <div className="p-4 space-y-4">
+               {/* Search Input */}
+               <div className="relative">
+                 <input 
+                   type="text" 
+                   placeholder="지역이나 동네로 검색하기" 
+                   value={searchQuery}
+                   onChange={(e) => setSearchQuery(e.target.value)}
+                   className="w-full px-4 py-3 bg-gray-700 text-white rounded-lg text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-500"
+                 />
+               </div>
+
+               {/* Current Location Button */}
+               <button 
+                 onClick={handleCurrentLocationClick}
+                 className="w-full flex items-center justify-center gap-2 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors"
+               >
+                 <svg className="w-4 h-4 text-red-500" fill="currentColor" viewBox="0 0 24 24">
+                   <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                 </svg>
+                 현재 내 위치 사용하기
+               </button>
+
+               {/* Recommendations */}
+               <div>
+                 <h3 className="text-gray-400 text-sm mb-3">추천</h3>
+                 <div className="space-y-2">
+                   <button 
+                     onClick={() => handleLocationSelect('송도동')}
+                     className="w-full text-left py-3 px-4 text-white hover:bg-gray-700 rounded-lg transition-colors"
+                   >
+                     인천광역시, 연수구, 송도동
+                   </button>
+                   <button 
+                     onClick={() => handleLocationSelect('강남구')}
+                     className={`w-full text-left py-3 px-4 text-white rounded-lg transition-colors ${
+                       selectedLocation === '강남구' ? 'bg-gray-700' : 'hover:bg-gray-700'
+                     }`}
+                   >
+                     서울특별시, 강남구, 역삼동
+                   </button>
+                   <button 
+                     onClick={() => handleLocationSelect('양산시')}
+                     className="w-full text-left py-3 px-4 text-white hover:bg-gray-700 rounded-lg transition-colors"
+                   >
+                     경상남도, 양산시, 물금읍
+                   </button>
+                   <button 
+                     onClick={() => handleLocationSelect('화성시')}
+                     className="w-full text-left py-3 px-4 text-white hover:bg-gray-700 rounded-lg transition-colors"
+                   >
+                     경기도, 화성시, 봉담읍
+                   </button>
+                   <button 
+                     onClick={() => handleLocationSelect('아산시')}
+                     className="w-full text-left py-3 px-4 text-white hover:bg-gray-700 rounded-lg transition-colors"
+                   >
+                     충청남도, 아산시, 배방읍
+                   </button>
+                   <button 
+                     onClick={() => handleLocationSelect('서초구')}
+                     className="w-full text-left py-3 px-4 text-white hover:bg-gray-700 rounded-lg transition-colors"
+                   >
+                     서울특별시, 서초구, 서초동
+                   </button>
+                   <button 
+                     onClick={() => handleLocationSelect('양주시')}
+                     className="w-full text-left py-3 px-4 text-white hover:bg-gray-700 rounded-lg transition-colors"
+                   >
+                     경기도, 양주시, 옥정동
+                   </button>
+                   <button 
+                     onClick={() => handleLocationSelect('신림동')}
+                     className="w-full text-left py-3 px-4 text-white hover:bg-gray-700 rounded-lg transition-colors"
+                   >
+                     서울특별시, 강남구, 신림동
+                   </button>
+                   <button 
+                     onClick={() => handleLocationSelect('천안시')}
+                     className="w-full text-left py-3 px-4 text-white hover:bg-gray-700 rounded-lg transition-colors"
+                   >
+                     충청남도, 천안시 서북구, 불당동
+                   </button>
+                 </div>
+               </div>
+             </div>
+           </div>
+         </div>
+       )}
 
       {/* 모바일 메뉴 */}
       {mobileMenuOpen && (
