@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
 import Head from 'next/head';
-import Header from '../components/layout/Header';
 import SearchSection from '../components/layout/SearchSection';
-import Footer from '../components/layout/Footer';
 import CategoryFilter from '../components/filter/CategoryFilter';
 import PlaceCard from '../components/place/PlaceCard';
 import Sidebar from '../components/layout/Sidebar';
@@ -251,19 +249,9 @@ const samplePlaces = [
 
 export default function HomePage() {
   const [selectedCategory, setSelectedCategory] = useState('all');
-  const [isMapMode, setIsMapMode] = useState(false);
-  const [locationModalOpen, setLocationModalOpen] = useState(false);
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState('gangnam');
   const [selectedYoutuberCounts, setSelectedYoutuberCounts] = useState(['3']);
-
-  const handleLocationClick = () => {
-    setLocationModalOpen(true);
-  };
-
-  const handleMapToggle = () => {
-    setIsMapMode(!isMapMode);
-  };
 
   const handleMobileFilterClick = () => {
     setMobileFilterOpen(true);
@@ -333,18 +321,11 @@ export default function HomePage() {
         `}</style>
       </Head>
 
-      <div className="min-h-screen bg-black text-white">
-        <Header 
-          onLocationClick={handleLocationClick}
-          onMapToggle={handleMapToggle}
-          isMapMode={isMapMode}
+      <>
+        <SearchSection 
+          onSearch={(query) => console.log('검색:', query)}
+          onVoiceSearch={() => console.log('음성 검색')}
         />
-
-        <div className="pt-16">
-          <SearchSection 
-            onSearch={(query) => console.log('검색:', query)}
-            onVoiceSearch={() => console.log('음성 검색')}
-          />
 
           {/* 카테고리 필터 */}
           <div className="px-6 py-3 bg-black border-b border-gray-800">
@@ -400,8 +381,6 @@ export default function HomePage() {
               )}
             </section>
           </main>
-        </div>
-
         {/* 모바일 필터 모달 */}
         <MobileFilterModal
           isOpen={mobileFilterOpen}
@@ -413,9 +392,7 @@ export default function HomePage() {
           onClearFilters={handleClearFilters}
           onApplyFilters={handleApplyFilters}
         />
-
-        <Footer />
-      </div>
+      </>
     </>
   );
 }

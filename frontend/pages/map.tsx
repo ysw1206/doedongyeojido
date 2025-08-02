@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
 import Head from 'next/head';
-import Header from '../components/layout/Header';
 import CategoryFilter from '../components/filter/CategoryFilter';
 
 interface Position {
@@ -24,7 +23,8 @@ interface Place {
 }
 
 // 카카오맵 API 키 (실제 환경에서는 환경변수로 관리)
-const KAKAO_MAP_API_KEY = process.env.NEXT_PUBLIC_KAKAO_MAP_API_KEY || 'b3e9e8ea77f4ea9745516bd4b2e39e21';
+//const KAKAO_MAP_API_KEY = process.env.NEXT_PUBLIC_KAKAO_MAP_API_KEY || 'b3e9e8ea77f4ea9745516bd4b2e39e21';
+const KAKAO_MAP_API_KEY = process.env.NEXT_PUBLIC_KAKAO_MAP_API_KEY || 'b0b54392c8c4be75d2000792a7f3c58e';
 
 // 샘플 이미지 URL (안정적인 이미지 사용)
 const SAMPLE_IMAGES = [
@@ -122,21 +122,33 @@ export default function MapPage() {
       return;
     }
 
+    // 이미 카카오맵이 로드되어 있는지 확인
+    if (window.kakao && window.kakao.maps && window.kakao.maps.Map) {
+      console.log('✅ 카카오맵이 이미 로드되어 있습니다.');
+      setIsKakaoLoaded(true);
+      return;
+    }
+
+    // 이미 스크립트가 로딩 중인지 확인
+    const existingScript = document.querySelector('script[src*="dapi.kakao.com"]');
+    if (existingScript) {
+      console.log('카카오맵 스크립트가 이미 로딩 중입니다.');
+      
+      // 스크립트 로드 완료 대기
+      existingScript.addEventListener('load', () => {
+        if (window.kakao && window.kakao.maps) {
+          window.kakao.maps.load(() => {
+            console.log('✅ 기존 스크립트로 카카오맵 로딩 완료!');
+            setIsKakaoLoaded(true);
+          });
+        }
+      });
+      return;
+    }
+
     const loadKakaoMapScript = () => {
+      console.log('KAKAO_MAP_API_KEY:', KAKAO_MAP_API_KEY);
       return new Promise<void>((resolve, reject) => {
-        // 기존 스크립트 제거
-        const existingScript = document.querySelector('script[src*="dapi.kakao.com"]');
-        if (existingScript) {
-          existingScript.remove();
-          console.log('기존 카카오맵 스크립트 제거');
-        }
-
-        // window.kakao 초기화
-        if (window.kakao) {
-          delete (window as any).kakao;
-          console.log('기존 kakao 객체 제거');
-        }
-
         const script = document.createElement('script');
         script.type = 'text/javascript';
         script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${KAKAO_MAP_API_KEY}&autoload=false&libraries=clusterer`;
@@ -196,14 +208,6 @@ export default function MapPage() {
       .catch((error) => {
         console.error('카카오맵 로딩 실패:', error);
         setIsKakaoLoaded(false);
-        
-        // 3초 후 재시도
-        setTimeout(() => {
-          console.log('카카오맵 로딩 재시도...');
-          loadKakaoMapScript()
-            .then(() => setIsKakaoLoaded(true))
-            .catch(() => setIsKakaoLoaded(false));
-        }, 3000);
       });
   }, []);
 
@@ -432,13 +436,7 @@ export default function MapPage() {
     markersRef.current = newMarkers;
   }, [map, clusterer, filteredPlaces, showVideoSlider]);
 
-  const handleLocationClick = () => {
-    console.log('지역 설정 클릭');
-  };
 
-  const handleMapToggle = () => {
-    console.log('지도 토글 클릭');
-  };
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -538,199 +536,188 @@ export default function MapPage() {
           <meta name="description" content="주변 맛집을 지도에서 확인해보세요" />
         </Head>
 
-        <div className="min-h-screen bg-black text-white">
-          <Header 
-            onLocationClick={handleLocationClick}
-            onMapToggle={handleMapToggle}
-            isMapMode={true}
-            showSearchSection={false}
-          />
-
-          <div className="pt-16">
-            {/* 검색 및 필터 섹션 */}
-            <div className="absolute top-16 left-0 right-0 z-10 bg-black bg-opacity-90 backdrop-blur-sm">
-              <div className="px-6 py-4">
-                <form onSubmit={handleSearch} className="flex items-center gap-2">
-                  <div className="flex-1 relative">
-                    <input 
-                      type="text" 
-                      placeholder="맛집, 메뉴, 유튜버 검색" 
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="w-full px-4 py-2 bg-gray-800 text-white rounded-full text-sm pl-10" 
-                    />
-                    <svg className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                    </svg>
-                  </div>
-                  <button 
-                    type="button"
-                    onClick={handleVoiceSearch}
-                    className="p-2 bg-gray-800 rounded-full hover:bg-gray-700"
-                  >
-                    <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path>
-                    </svg>
-                  </button>
-                </form>
-              </div>
-
-              <div className="px-6 py-3 border-b border-gray-800">
-                <CategoryFilter 
-                  selectedCategory={selectedCategory}
-                  onCategoryChange={setSelectedCategory}
+        {/* 검색 및 필터 섹션 */}
+        <div className="absolute top-16 left-0 right-0 z-10 bg-black bg-opacity-90 backdrop-blur-sm">
+          <div className="px-6 py-4">
+            <form onSubmit={handleSearch} className="flex items-center gap-2">
+              <div className="flex-1 relative">
+                <input 
+                  type="text" 
+                  placeholder="맛집, 메뉴, 유튜버 검색" 
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full px-4 py-2 bg-gray-800 text-white rounded-full text-sm pl-10" 
                 />
+                <svg className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                </svg>
               </div>
+              <button 
+                type="button"
+                onClick={handleVoiceSearch}
+                className="p-2 bg-gray-800 rounded-full hover:bg-gray-700"
+              >
+                <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path>
+                </svg>
+              </button>
+            </form>
+          </div>
 
-              <div className="px-6 py-3 flex justify-between items-center">
-                <button 
-                  onClick={() => setShowFilters(!showFilters)}
-                  className="flex items-center gap-2 bg-gradient-to-r from-pink-400 to-pink-500 text-white px-4 py-2 rounded-lg hover:from-pink-500 hover:to-pink-600 transition-all duration-200"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
-                  </svg>
-                  <span>필터</span>
-                </button>
-                
-                <div className="text-sm text-gray-400">
-                  {filteredPlaces.length}개의 맛집
-                </div>
-              </div>
+          <div className="px-6 py-3 border-b border-gray-800">
+            <CategoryFilter 
+              selectedCategory={selectedCategory}
+              onCategoryChange={setSelectedCategory}
+            />
+          </div>
 
-              {showFilters && (
-                <div className="px-6 py-4 border-b border-gray-800 bg-gray-900">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-400 mb-2">거리</label>
-                      <select 
-                        value={distanceFilter}
-                        onChange={(e) => setDistanceFilter(e.target.value)}
-                        className="w-full px-3 py-2 bg-gray-800 text-white rounded-lg text-sm"
-                      >
-                        <option value="500m">500m</option>
-                        <option value="1km">1km</option>
-                        <option value="3km">3km</option>
-                        <option value="5km">5km</option>
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-400 mb-2">유튜버 방문수</label>
-                      <select 
-                        value={youtuberCountFilter}
-                        onChange={(e) => setYoutuberCountFilter(e.target.value)}
-                        className="w-full px-3 py-2 bg-gray-800 text-white rounded-lg text-sm"
-                      >
-                        <option value="1">1명 이상</option>
-                        <option value="3">3명 이상</option>
-                        <option value="5">5명 이상</option>
-                      </select>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* 임시 지도 컨테이너 */}
-            <div className="relative w-full h-screen">
-              {/* 임시 지도 영역 */}
-              <div className="absolute inset-0 w-full h-full min-h-[500px] bg-gray-800 flex items-center justify-center">
-                <div className="text-center">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-500 mx-auto mb-4"></div>
-                  <p className="text-white">카카오맵을 로드하는 중...</p>
-                  <div className="mt-4 text-sm text-gray-400">
-                    <div>위치: {pos ? '✅' : '❌'}</div>
-                    <div>카카오맵: {isKakaoLoaded ? '✅' : '❌'}</div>
-                    <div>API 키: {KAKAO_MAP_API_KEY ? '✅' : '❌'}</div>
-                  </div>
-                </div>
-              </div>
-
-              {/* 하단 비디오 슬라이더 */}
-              {filteredPlaces.length > 0 && (
-                <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-95 backdrop-blur-sm border-t border-gray-700 z-10">
-                  <div className="p-4">
-                    <div className="flex items-center justify-between mb-4">
-                      <h2 className="text-lg font-semibold text-white">주변 맛집 영상</h2>
-                      <span className="text-sm text-gray-400">{filteredPlaces.length}개</span>
-                    </div>
-                    <div 
-                      ref={sliderRef}
-                      className="flex gap-4 overflow-x-auto scrollbar-hide pb-2"
-                      style={{ scrollSnapType: 'x mandatory' }}
-                      onScroll={handleSliderScroll}
-                    >
-                      {filteredPlaces.map((place, index) => (
-                        <div 
-                          key={place.id}
-                          onClick={() => handleSliderItemClick(place, index)}
-                          className={`flex-shrink-0 w-64 bg-gray-900 rounded-lg overflow-hidden cursor-pointer transition-all duration-300 ${
-                            index === selectedPlaceIndex 
-                              ? 'ring-2 ring-pink-500 scale-105' 
-                              : 'hover:bg-gray-800'
-                          }`}
-                          style={{ scrollSnapAlign: 'center' }}
-                        >
-                          <div className="relative">
-                            <img 
-                              src={place.image} 
-                              alt={place.title}
-                              className="w-full h-32 object-cover"
-                              onError={(e) => {
-                                const target = e.target as HTMLImageElement;
-                                target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjg4IiBoZWlnaHQ9IjE2MCIgdmlld0JveD0iMCAwIDI4OCAxNjAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyODgiIGhlaWdodD0iMTYwIiBmaWxsPSIjM0Y0QjU5Ii8+CjxwYXRoIGQ9Ik0xNDQgODBDMzIuMzUgODAgMCAxMTIuMzUgMCAxNDRWMTYwSDI4OFYxNDRDMjg4IDExMi4zNSAyNTUuNjUgODAgMTQ0IDgwWiIgZmlsbD0iIzZCNzI4MCIvPgo8cGF0aCBkPSJNMTA4IDEyMEMyOS4wOSAxMjAgMCAxNDkuMDkgMCAxNjhWMTkySDI4OFYxNjhDMjg4IDE0OS4wOSAyNTguOTEgMTIwIDIzMCAxMjBIMTA4WiIgZmlsbD0iIzZCNzI4MCIvPgo8L3N2Zz4K';
-                              }}
-                            />
-                            <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-30">
-                              <div className="w-12 h-12 bg-white bg-opacity-80 rounded-full flex items-center justify-center">
-                                <svg className="w-6 h-6 text-black ml-1" fill="currentColor" viewBox="0 0 24 24">
-                                  <path d="M8 5v14l11-7z"/>
-                                </svg>
-                              </div>
-                            </div>
-                            <div className="absolute top-2 right-2 bg-black bg-opacity-60 text-white text-xs px-2 py-1 rounded">
-                              {place.distance}
-                            </div>
-                          </div>
-                          
-                          <div className="p-3">
-                            <h3 className="text-sm font-medium text-white mb-1 truncate">{place.title}</h3>
-                            <p className="text-xs text-gray-400 mb-2">{place.youtuberName}</p>
-                            <div className="flex items-center gap-2 text-xs text-gray-500 mb-2">
-                              <span>{place.viewCount}</span>
-                              <span>•</span>
-                              <span>{place.category}</span>
-                            </div>
-                            <div className="flex items-center justify-between">
-                              <span className="text-xs bg-gradient-to-r from-pink-400 to-pink-500 text-white px-2 py-1 rounded">
-                                유튜버 {place.youtuberCount}명 방문
-                              </span>
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleFavoriteToggle(place.id);
-                                }}
-                                className={`w-6 h-6 rounded-full flex items-center justify-center ${
-                                  place.isFavorite 
-                                    ? 'bg-gradient-to-r from-pink-400 to-pink-500' 
-                                    : 'bg-gray-700 hover:bg-gray-600'
-                                }`}
-                              >
-                                <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 24 24">
-                                  <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-                                </svg>
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              )}
+          <div className="px-6 py-3 flex justify-between items-center">
+            <button 
+              onClick={() => setShowFilters(!showFilters)}
+              className="flex items-center gap-2 bg-gradient-to-r from-pink-400 to-pink-500 text-white px-4 py-2 rounded-lg hover:from-pink-500 hover:to-pink-600 transition-all duration-200"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
+              </svg>
+              <span>필터</span>
+            </button>
+            
+            <div className="text-sm text-gray-400">
+              {filteredPlaces.length}개의 맛집
             </div>
           </div>
+
+          {showFilters && (
+            <div className="px-6 py-4 border-b border-gray-800 bg-gray-900">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-400 mb-2">거리</label>
+                  <select 
+                    value={distanceFilter}
+                    onChange={(e) => setDistanceFilter(e.target.value)}
+                    className="w-full px-3 py-2 bg-gray-800 text-white rounded-lg text-sm"
+                  >
+                    <option value="500m">500m</option>
+                    <option value="1km">1km</option>
+                    <option value="3km">3km</option>
+                    <option value="5km">5km</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-400 mb-2">유튜버 방문수</label>
+                  <select 
+                    value={youtuberCountFilter}
+                    onChange={(e) => setYoutuberCountFilter(e.target.value)}
+                    className="w-full px-3 py-2 bg-gray-800 text-white rounded-lg text-sm"
+                  >
+                    <option value="1">1명 이상</option>
+                    <option value="3">3명 이상</option>
+                    <option value="5">5명 이상</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* 임시 지도 컨테이너 */}
+        <div className="relative w-full h-screen">
+          {/* 임시 지도 영역 */}
+          <div className="absolute inset-0 w-full h-full min-h-[500px] bg-gray-800 flex items-center justify-center">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-500 mx-auto mb-4"></div>
+              <p className="text-white">카카오맵을 로드하는 중...</p>
+              <div className="mt-4 text-sm text-gray-400">
+                <div>위치: {pos ? '✅' : '❌'}</div>
+                <div>카카오맵: {isKakaoLoaded ? '✅' : '❌'}</div>
+                <div>API 키: {KAKAO_MAP_API_KEY ? '✅' : '❌'}</div>
+              </div>
+            </div>
+          </div>
+
+          {/* 하단 비디오 슬라이더 */}
+          {filteredPlaces.length > 0 && (
+            <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-95 backdrop-blur-sm border-t border-gray-700 z-10">
+              <div className="p-4">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-lg font-semibold text-white">주변 맛집 영상</h2>
+                  <span className="text-sm text-gray-400">{filteredPlaces.length}개</span>
+                </div>
+                <div 
+                  ref={sliderRef}
+                  className="flex gap-4 overflow-x-auto scrollbar-hide pb-2"
+                  style={{ scrollSnapType: 'x mandatory' }}
+                  onScroll={handleSliderScroll}
+                >
+                  {filteredPlaces.map((place, index) => (
+                    <div 
+                      key={place.id}
+                      onClick={() => handleSliderItemClick(place, index)}
+                      className={`flex-shrink-0 w-64 bg-gray-900 rounded-lg overflow-hidden cursor-pointer transition-all duration-300 ${
+                        index === selectedPlaceIndex 
+                          ? 'ring-2 ring-pink-500 scale-105' 
+                          : 'hover:bg-gray-800'
+                      }`}
+                      style={{ scrollSnapAlign: 'center' }}
+                    >
+                      <div className="relative">
+                        <img 
+                          src={place.image} 
+                          alt={place.title}
+                          className="w-full h-32 object-cover"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjg4IiBoZWlnaHQ9IjE2MCIgdmlld0JveD0iMCAwIDI4OCAxNjAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyODgiIGhlaWdodD0iMTYwIiBmaWxsPSIjM0Y0QjU5Ii8+CjxwYXRoIGQ9Ik0xNDQgODBDMzIuMzUgODAgMCAxMTIuMzUgMCAxNDRWMTYwSDI4OFYxNDRDMjg4IDExMi4zNSAyNTUuNjUgODAgMTQ0IDgwWiIgZmlsbD0iIzZCNzI4MCIvPgo8cGF0aCBkPSJNMTA4IDEyMEMyOS4wOSAxMjAgMCAxNDkuMDkgMCAxNjhWMTkySDI4OFYxNjhDMjg4IDE0OS4wOSAyNTguOTEgMTIwIDIzMCAxMjBIMTA4WiIgZmlsbD0iIzZCNzI4MCIvPgo8L3N2Zz4K';
+                          }}
+                        />
+                        <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-30">
+                          <div className="w-12 h-12 bg-white bg-opacity-80 rounded-full flex items-center justify-center">
+                            <svg className="w-6 h-6 text-black ml-1" fill="currentColor" viewBox="0 0 24 24">
+                              <path d="M8 5v14l11-7z"/>
+                            </svg>
+                          </div>
+                        </div>
+                        <div className="absolute top-2 right-2 bg-black bg-opacity-60 text-white text-xs px-2 py-1 rounded">
+                          {place.distance}
+                        </div>
+                      </div>
+                      
+                      <div className="p-3">
+                        <h3 className="text-sm font-medium text-white mb-1 truncate">{place.title}</h3>
+                        <p className="text-xs text-gray-400 mb-2">{place.youtuberName}</p>
+                        <div className="flex items-center gap-2 text-xs text-gray-500 mb-2">
+                          <span>{place.viewCount}</span>
+                          <span>•</span>
+                          <span>{place.category}</span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs bg-gradient-to-r from-pink-400 to-pink-500 text-white px-2 py-1 rounded">
+                            유튜버 {place.youtuberCount}명 방문
+                          </span>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleFavoriteToggle(place.id);
+                            }}
+                            className={`w-6 h-6 rounded-full flex items-center justify-center ${
+                              place.isFavorite 
+                                ? 'bg-gradient-to-r from-pink-400 to-pink-500' 
+                                : 'bg-gray-700 hover:bg-gray-600'
+                            }`}
+                          >
+                            <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 24 24">
+                              <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                            </svg>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </>
     );
@@ -763,16 +750,6 @@ export default function MapPage() {
         <title>맛집 지도 - 돼동여지도</title>
         <meta name="description" content="주변 맛집을 지도에서 확인해보세요" />
       </Head>
-
-      <div className="min-h-screen bg-black text-white">
-        <Header 
-          onLocationClick={handleLocationClick}
-          onMapToggle={handleMapToggle}
-          isMapMode={true}
-          showSearchSection={false}
-        />
-
-        <div className="pt-16">
           {/* 검색 및 필터 섹션 */}
           <div className="absolute top-16 left-0 right-0 z-10 bg-black bg-opacity-90 backdrop-blur-sm">
             {/* 검색 바 */}
@@ -1020,8 +997,6 @@ export default function MapPage() {
               </div>
             )}
           </div>
-        </div>
-      </div>
     </>
   );
 }
