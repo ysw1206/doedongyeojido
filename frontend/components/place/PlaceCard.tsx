@@ -1,6 +1,8 @@
+'use client'
+
 import React from 'react';
 import Link from 'next/link';
-import { useLocalStorage } from '../../hooks/useLocalStorage';
+import { useLocalStorage } from '@/hooks/useLocalStorage';
 
 interface PlaceCardProps {
   id: string;

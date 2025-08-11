@@ -1,6 +1,18 @@
 /** @type {import('next').NextConfig} */
-const withPWA = require('next-pwa')({ dest: 'public' })
+const nextConfig = {
+  experimental: {
+    typedRoutes: true,
+  },
+  images: {
+    domains: [], // 필요한 이미지 도메인 추가
+  },
+  webpack: (config) => {
+    config.module.rules.push({
+      test: /\.svg$/,
+      use: ['@svgr/webpack'],
+    });
+    return config;
+  },
+}
 
-module.exports = withPWA({
-  reactStrictMode: true,
-})
+module.exports = nextConfig

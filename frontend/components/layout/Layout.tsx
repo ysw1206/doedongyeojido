@@ -1,5 +1,7 @@
+'use client'
+
 import React, { useState } from 'react';
-import { useRouter } from 'next/router';
+import { useRouter, usePathname } from 'next/navigation';
 import Header from './Header';
 import Footer from './Footer';
 
@@ -9,13 +11,14 @@ interface LayoutProps {
 
 export default function Layout({ children }: LayoutProps) {
   const router = useRouter();
+  const pathname = usePathname();
   const [locationModalOpen, setLocationModalOpen] = useState(false);
 
   // 현재 페이지가 지도 페이지인지 확인
-  const isMapMode = router.pathname === '/map';
+  const isMapMode = pathname === '/map';
   
   // 지도 페이지에서는 SearchSection을 보여주지 않음
-  const showSearchSection = router.pathname !== '/map';
+  const showSearchSection = pathname !== '/map';
 
   const handleLocationClick = () => {
     setLocationModalOpen(true);
