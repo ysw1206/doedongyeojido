@@ -1,0 +1,128 @@
+{
+  "enabled": true,
+  "description": "도에돈여지도 프론트엔드 API 모킹 설정",
+  "mockedEndpoints": {
+    "/api/places": {
+      "GET": {
+        "enabled": true,
+        "dataFile": "/places/list.json",
+        "delay": 500,
+        "description": "장소 목록 조회"
+      },
+      "POST": {
+        "enabled": true,
+        "dataFile": "/places/create.json",
+        "delay": 300,
+        "description": "장소 생성"
+      }
+    },
+    "/api/places/:id": {
+      "GET": {
+        "enabled": true,
+        "dataFile": "/places/detail.json",
+        "delay": 200,
+        "description": "장소 상세 조회",
+        "pattern": true
+      },
+      "PUT": {
+        "enabled": true,
+        "dataFile": "/places/update.json",
+        "delay": 400,
+        "description": "장소 정보 수정",
+        "pattern": true
+      },
+      "DELETE": {
+        "enabled": true,
+        "dataFile": "/places/delete.json",
+        "delay": 300,
+        "description": "장소 삭제",
+        "pattern": true
+      }
+    },
+    "/api/places/:id/reviews": {
+      "GET": {
+        "enabled": true,
+        "dataFile": "/places/reviews.json",
+        "delay": 400,
+        "description": "장소 리뷰 목록 조회",
+        "pattern": true
+      },
+      "POST": {
+        "enabled": true,
+        "dataFile": "/places/review-create.json",
+        "delay": 500,
+        "description": "리뷰 작성",
+        "pattern": true
+      }
+    },
+    "/api/places/search": {
+      "GET": {
+        "enabled": true,
+        "dataFile": "/places/search.json",
+        "delay": 600,
+        "description": "장소 검색"
+      }
+    },
+    "/api/places/categories": {
+      "GET": {
+        "enabled": true,
+        "dataFile": "/places/categories.json",
+        "delay": 200,
+        "description": "카테고리 목록 조회"
+      }
+    },
+    "/api/users/favorites": {
+      "GET": {
+        "enabled": true,
+        "dataFile": "/users/favorites.json",
+        "delay": 400,
+        "description": "즐겨찾기 목록 조회"
+      },
+      "POST": {
+        "enabled": true,
+        "dataFile": "/users/favorite-add.json",
+        "delay": 300,
+        "description": "즐겨찾기 추가"
+      }
+    },
+    "/api/users/favorites/:placeId": {
+      "DELETE": {
+        "enabled": true,
+        "dataFile": "/users/favorite-remove.json",
+        "delay": 300,
+        "description": "즐겨찾기 제거",
+        "pattern": true
+      }
+    },
+    "/api/auth/profile": {
+      "GET": {
+        "enabled": true,
+        "dataFile": "/auth/profile.json",
+        "delay": 300,
+        "description": "사용자 프로필 조회"
+      },
+      "PUT": {
+        "enabled": true,
+        "dataFile": "/auth/profile-update.json",
+        "delay": 400,
+        "description": "사용자 프로필 수정"
+      }
+    },
+    "/api/reviews/:id": {
+      "PUT": {
+        "enabled": true,
+        "dataFile": "/reviews/update.json",
+        "delay": 400,
+        "description": "리뷰 수정",
+        "pattern": true
+      },
+      "DELETE": {
+        "enabled": true,
+        "dataFile": "/reviews/delete.json",
+        "delay": 300,
+        "description": "리뷰 삭제",
+        "pattern": true
+      }
+    }
+  }
+}

@@ -33,7 +33,11 @@ export default function ClientLayout({ children }: ClientLayoutProps) {
 
   return (
     <>
-      <Header />
+      <Header 
+        onLocationClick={handleLocationClick}
+        onMapToggle={handleMapToggle}
+        isMapMode={isMapMode}
+      />
       {/* 지도 페이지는 pt-16 없이, 다른 페이지는 pt-16 적용 */}
       <main className={isMapMode ? "" : "pt-16"}>
         {children}

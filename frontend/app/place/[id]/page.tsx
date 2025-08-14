@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { useLocalStorage } from '@/hooks/useLocalStorage'
 
 interface Props {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }
 
 // 샘플 데이터
@@ -148,7 +148,13 @@ const sampleHighlights = [
 
 const KAKAO_MAP_API_KEY = process.env.NEXT_PUBLIC_KAKAO_MAP_API_KEY || 'b0b54392c8c4be75d2000792a7f3c58e'
 
-export default function PlaceDetailPage({ params }: Props) {
+export default async function PlaceDetailPage({ params }: Props) {
+  const resolvedParams = await params;
+  
+  return <PlaceDetailPageClient params={resolvedParams} />;
+}
+
+function PlaceDetailPageClient({ params }: { params: { id: string } }) {
   const [favorites, setFavorites] = useLocalStorage<string[]>('favorites', [])
   const [visited, setVisited] = useLocalStorage<string[]>('visited', [])
   const [isKakaoLoaded, setIsKakaoLoaded] = useState(false)

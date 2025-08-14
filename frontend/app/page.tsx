@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import Head from 'next/head'
 import SearchSection from '@/components/layout/SearchSection'
 import CategoryFilter from '@/components/filter/CategoryFilter'
@@ -8,24 +8,55 @@ import PlaceCard from '@/components/place/PlaceCard'
 import ShortsSection from '@/components/shorts/ShortsSection'
 import Sidebar from '@/components/layout/Sidebar'
 import MobileFilterModal from '@/components/layout/MobileFilterModal'
+import { usePlaces, useCategories, usePopularPlaces } from '@/hooks'
+import { useFilterStore } from '@/stores/filterStore'
 
 export default function HomePage() {
-  const [selectedCategory, setSelectedCategory] = useState('all')
-  const [selectedLocation, setSelectedLocation] = useState('')
-  const [selectedYoutuberCounts, setSelectedYoutuberCounts] = useState<string[]>([])
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false)
+  
+  // 필터 스토어 사용
+  const {
+    selectedCategories,
+    searchQuery,
+    sortBy,
+    getSearchFilters,
+    setSelectedCategories,
+    setSearchQuery,
+    clearAllFilters
+  } = useFilterStore()
+  
+  // 현재 선택된 카테고리 (단일 선택을 위한 로컬 상태)
+  const [selectedCategory, setSelectedCategory] = useState('all')
+  
+  // API 훅들 사용
+  const { categories } = useCategories()
+  
+  // 장소 목록 쿼리 생성
+  const placesQuery = useMemo(() => ({
+    category: selectedCategory !== 'all' ? selectedCategory : undefined,
+    search: searchQuery || undefined,
+    sortBy: sortBy.field,
+    sortOrder: sortBy.order,
+    limit: 20
+  }), [selectedCategory, searchQuery, sortBy])
+  
+  const { places, pagination, isLoading, error, refresh } = usePlaces(placesQuery)
+  
+  // 인기 장소도 가져오기 (홈페이지 상단용)
+  const { places: popularPlaces } = usePopularPlaces(undefined, 8)
 
   // 필터 핸들러들
-  const handleLocationChange = (location: string) => {
-    setSelectedLocation(location)
+  const handleSearchChange = (query: string) => {
+    setSearchQuery(query)
   }
 
-  const handleYoutuberCountChange = (count: string) => {
-    setSelectedYoutuberCounts(prev => 
-      prev.includes(count) 
-        ? prev.filter(c => c !== count)
-        : [...prev, count]
-    )
+  const handleCategoryChange = (category: string) => {
+    setSelectedCategory(category)
+    if (category !== 'all') {
+      setSelectedCategories([category])
+    } else {
+      setSelectedCategories([])
+    }
   }
 
   const handleMobileFilterClick = () => {
@@ -33,186 +64,30 @@ export default function HomePage() {
   }
 
   const handleClearFilters = () => {
-    setSelectedLocation('')
-    setSelectedYoutuberCounts([])
+    clearAllFilters()
+    setSelectedCategory('all')
   }
 
   const handleApplyFilters = () => {
     setMobileFilterOpen(false)
-    // 필터 적용 로직
   }
 
-  // 더미 데이터
-  const mockPlaces = [
-    {
-      "id": "1",
-      "title": "Since 1939) 끝없는 맛집들로 꽉❕꽉❕ 채워진 노원구 공릉동 👹도깨비시장 (꽈배기, 육개장, 닭발) [ENG]",
-      "description": "#홍석천  #이원일 #노원구 #꽈배기\n\n***광고 절대 아님***\n***모든 음식값 지불***\n\n경춘선 철도를 따라 지켜온 상인들의 손맛\n이젠 ...",
-      "image": "https://img.youtube.com/vi/6e2qb_9w4TE/maxresdefault.jpg",
-      "videoId": "6e2qb_9w4TE",
-      "category": "카페",
-      "youtuberCount": 4,
-      "youtuberName": "홍석천이원일",
-      "viewCount": "조회수 503,204회",
-      "uploadTime": "3달 전",
-      "duration": "28:39",
-      "distance": "580m"
-    },
-    {
-      "id": "2",
-      "title": "충격받을 준비 되셨나요? 살다 살다 이런 뷔페는 처음입니다.",
-      "description": "훈태의 일기📜\n\n이 세상엔 정말 미친 무한리필들이 많다.\n나는 그 중에 한 곳..\n호남 1짱 돈까스뷔페\n돈페라는 곳을 다녀왔다.\n돈페.. 역시나...",
-      "image": "https://img.youtube.com/vi/GzhIY4TgI3g/maxresdefault.jpg",
-      "videoId": "GzhIY4TgI3g",
-      "category": "한식",
-      "youtuberCount": 5,
-      "youtuberName": "섬마을훈태TV",
-      "viewCount": "조회수 236,954회",
-      "uploadTime": "1주 전",
-      "duration": "11:26",
-      "distance": "157m"
-    },
-    {
-      "id": "3",
-      "title": "수원 광교 맛집 BEST 12",
-      "description": "수원 광교에 왔어요! 광교는 호수공원도 있고 카페거리도 있어서 이쪽으로 놀러오기도 참으로 좋은 동네같았어요! 특히 신도시이다보니 거리도 깨끗하고...",
-      "image": "https://img.youtube.com/vi/_cmrFEFxV-8/maxresdefault.jpg",
-      "videoId": "_cmrFEFxV-8",
-      "category": "고기집",
-      "youtuberCount": 4,
-      "youtuberName": "하이갱스 higaengs",
-      "viewCount": "조회수 111,282회",
-      "uploadTime": "1달 전",
-      "duration": "26:16",
-      "distance": "479m"
-    },
-    {
-      "id": "4",
-      "title": "[sub] 성시경의 먹을텐데 l 부산 중앙역 중앙곰탕",
-      "description": "[중앙곰탕]\n부산 중구 충장대로9번길 9 동영빌딩지하 (중앙동4가 88-18)\n\n#양수백 #곰탕 #양곰탕\n#먹방 #맛집추천 #맛집탐방...",
-      "image": "https://img.youtube.com/vi/k9pte2X-4NA/maxresdefault.jpg",
-      "videoId": "k9pte2X-4NA",
-      "category": "고기집",
-      "youtuberCount": 3,
-      "youtuberName": "성시경 SUNG SI KYUNG",
-      "viewCount": "조회수 600,836회",
-      "uploadTime": "3주 전",
-      "duration": "21:28",
-      "distance": "612m"
-    },
-    {
-      "id": "5",
-      "title": "광주 현지인도 놀라요. 도대체 여길 어떻게 알고 다녀왔는지",
-      "description": "“쿠팡 파트너스 활동의 일환으로 이에 따른 일정액의 수수료를 제공받습니다”\n👉https://link.coupang.com/a/cAviOI\n둘시네...",
-      "image": "https://img.youtube.com/vi/28nYi3wP60s/maxresdefault.jpg",
-      "videoId": "28nYi3wP60s",
-      "category": "일식",
-      "youtuberCount": 4,
-      "youtuberName": "둘시네아 dulcinea",
-      "viewCount": "조회수 97,327회",
-      "uploadTime": "6일 전",
-      "duration": "42:18",
-      "distance": "338m"
-    },
-    {
-      "id": "6",
-      "title": "매일 덥다고 하는 일본인아내 대구 데려갔다가 맛집으로 화풀린 날..[대구 ep.1]",
-      "description": "요즘 에어컨 켜도 요리하거나 세라를 안으면 바로 더워지더라고요🥹\n계속 덥다고 했더니 대구를 데려가는 남편에게\n짜증이 날 뻔했지만(?) 다행히 남...",
-      "image": "https://img.youtube.com/vi/Lng9Vm56Fzs/maxresdefault.jpg",
-      "videoId": "Lng9Vm56Fzs",
-      "category": "한식",
-      "youtuberCount": 5,
-      "youtuberName": "네루짱NERU",
-      "viewCount": "조회수 147,590회",
-      "uploadTime": "1일 전",
-      "duration": "19:23",
-      "distance": "167m"
-    },
-    {
-      "id": "7",
-      "title": "(ENG) 용산에서 제대로 된 세끼 추천해드립니다ㅣ명수세끼 용산맛집ㅣ할명수 ep.207",
-      "description": "명-하!\n\n깨스야 다음은 어느 동네\n세끼가 좋을까?\n\n*00:00 용산 세끼*\n\n01:53 오제제🐷\n서울 용산구 한강대로 100 지하1층 B10...",
-      "image": "https://img.youtube.com/vi/xMgMpVIl1Rc/maxresdefault.jpg",
-      "videoId": "xMgMpVIl1Rc",
-      "category": "고기집",
-      "youtuberCount": 5,
-      "youtuberName": "할명수",
-      "viewCount": "조회수 1,081,001회",
-      "uploadTime": "9달 전",
-      "duration": "17:25",
-      "distance": "609m"
-    },
-    {
-      "id": "8",
-      "title": "야장하면 떠오르는 을지로 노포에서 1끼 8메뉴 먹고 온 이장우 (ft. 막창, 미나리, 배추전, 짜글이, 볶음밥, 짜파게티, 김치, 막걸리)",
-      "description": "부여식품 삼촌세트 이벤트 (8월 3일까지)\n👉🏼 https://bit.ly/4lULPKo\n\n#을지로맛집 #맛집추천 #이장우...",
-      "image": "https://img.youtube.com/vi/HSqpNLfdUJs/maxresdefault.jpg",
-      "videoId": "HSqpNLfdUJs",
-      "category": "중식",
-      "youtuberCount": 4,
-      "youtuberName": "살찐삼촌 이장우",
-      "viewCount": "조회수 106,233회",
-      "uploadTime": "3일 전",
-      "duration": "10:58",
-      "distance": "134m"
-    },
-    {
-      "id": "9",
-      "title": "부산 맛집추천 Best🎖️해운대 토박이 2025 로컬맛집모음zip.(부산국밥1등,20년째 단골,제철해산물,갓성비맛집,해장맛집,영도,광안리,온천장,서면,해운대,송정,기장) 부산존맛",
-      "description": "#부산맛집 #부산맛집추천 #해운대맛집 \n\n\n▫️ 이 영상은 유료광고를 포함하지 않습니다.\n\n\nInstagram :  https://www.ins...",
-      "image": "https://img.youtube.com/vi/T4Vd_ZzxFGw/maxresdefault.jpg",
-      "videoId": "T4Vd_ZzxFGw",
-      "category": "한식",
-      "youtuberCount": 4,
-      "youtuberName": "포푼젤 Popunzel",
-      "viewCount": "조회수 22,721회",
-      "uploadTime": "2주 전",
-      "duration": "17:52",
-      "distance": "712m"
-    },
-    {
-      "id": "10",
-      "title": "나오자마자 압도되는 미친 해장국맛집!",
-      "description": "#해장국맛집 #유가네원조양평해장국 #일산맛집\n#파주맛집 #덕이동맛집 #국밥맛집 #일산국밥 #파주국밥 #맛집소개 #맛집리뷰 #해내탕 #부속맛집\n\n...",
-      "image": "https://img.youtube.com/vi/MXD9aHTty24/maxresdefault.jpg",
-      "videoId": "MXD9aHTty24",
-      "category": "분식",
-      "youtuberCount": 1,
-      "youtuberName": "이쌍쌍 ssangssang",
-      "viewCount": "조회수 664,015회",
-      "uploadTime": "1년 전",
-      "duration": "1:57",
-      "distance": "883m"
-    },
-    {
-      "id": "11",
-      "title": "분당 토박이들이 말하는 진짜 중국집, 입소문 날 만했네요",
-      "description": "#레이먼킴 #분당맛집 #중국집 #중식맛집\n\n명희원\n-경기 성남시 분당구 정자동 166-3\n\n먹은음식\n-짜장면, 짬뽕, 탕수육, 볶음밥...",
-      "image": "https://img.youtube.com/vi/lNW3omIZZW4/maxresdefault.jpg",
-      "videoId": "lNW3omIZZW4",
-      "category": "고기집",
-      "youtuberCount": 3,
-      "youtuberName": "레이먼킴의 인생고기 RaymonKim Meat",
-      "viewCount": "조회수 56,476회",
-      "uploadTime": "2주 전",
-      "duration": "6:21",
-      "distance": "842m"
-    },
-    {
-      "id": "12",
-      "title": "모두가 기다린 안양, 정면돌파하고👊 1등 맛집 찾았습니다 | 또간집 EP.79",
-      "description": "댓글 민심 폭발했던 또간집 안양 편.. 인덕원부터 평촌 안양 바닥 싹 다 뒤졌습니다.\n정말 끝까지 갔던 안양에서 모두가 만족할 근본 맛집 종결합...",
-      "image": "https://img.youtube.com/vi/hbFzeLwe7yg/maxresdefault.jpg",
-      "videoId": "hbFzeLwe7yg",
-      "category": "중식",
-      "youtuberCount": 1,
-      "youtuberName": "스튜디오 수제",
-      "viewCount": "조회수 1,584,520회",
-      "uploadTime": "1달 전",
-      "duration": "38:19",
-      "distance": "319m"
-    }
-  ]
+  // 로딩 및 에러 처리
+  if (error) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-red-400 text-lg mb-4">데이터를 불러오는 중 오류가 발생했습니다</div>
+          <button 
+            onClick={() => refresh()}
+            className="bg-pink-500 text-white px-4 py-2 rounded-lg hover:bg-pink-600"
+          >
+            다시 시도
+          </button>
+        </div>
+      </div>
+    )
+  }
 
   const sampleShorts = [
     {
@@ -281,17 +156,7 @@ export default function HomePage() {
     }
   ]
 
-  // 카테고리에 따른 필터링 + 추가 필터링 로직
-  const filteredPlaces = mockPlaces.filter(place => {
-    // 카테고리 필터
-    const categoryMatch = selectedCategory === 'all' || place.category === selectedCategory
-    
-    // 유튜버 방문수 필터
-    const youtuberCountMatch = selectedYoutuberCounts.length === 0 || 
-      selectedYoutuberCounts.some(count => place.youtuberCount >= parseInt(count))
-    
-    return categoryMatch && youtuberCountMatch
-  })
+  // 실제 데이터 사용 (API에서 이미 필터링됨)
 
   return (
     <>
@@ -319,7 +184,7 @@ export default function HomePage() {
 
       <div className="min-h-screen bg-black">
         <SearchSection 
-          onSearch={(query) => console.log('검색:', query)}
+          onSearch={handleSearchChange}
           onVoiceSearch={() => console.log('음성 검색')}
         />
 
@@ -327,17 +192,17 @@ export default function HomePage() {
         <div className="px-6 py-3 bg-black border-b border-gray-800">
           <CategoryFilter 
             selectedCategory={selectedCategory}
-            onCategoryChange={setSelectedCategory}
+            onCategoryChange={handleCategoryChange}
           />
         </div>
 
         <main className="flex">
           {/* 사이드바 (데스크탑) */}
           <Sidebar 
-            selectedLocation={selectedLocation}
-            onLocationChange={handleLocationChange}
-            selectedYoutuberCounts={selectedYoutuberCounts}
-            onYoutuberCountChange={handleYoutuberCountChange}
+            selectedLocation=""
+            onLocationChange={() => {}} // TODO: 위치 필터 구현
+            selectedYoutuberCounts={[]}
+            onYoutuberCountChange={() => {}} // TODO: 유튜버 카운트 필터 구현
           />
 
           {/* 맛집 영상 목록 (목록 모드) */}
@@ -358,21 +223,49 @@ export default function HomePage() {
             {/* 숏츠 섹션 */}
             <ShortsSection shorts={sampleShorts} />
 
+            {/* 로딩 상태 */}
+            {isLoading && (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                {Array.from({ length: 8 }).map((_, index) => (
+                  <div key={index} className="bg-gray-800 rounded-lg animate-pulse h-64" />
+                ))}
+              </div>
+            )}
+
             {/* 맛집 목록 */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {filteredPlaces.map((place) => (
-                <PlaceCard
-                  key={place.id}
-                  {...place}
-                />
-              ))}
-            </div>
+            {!isLoading && (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                {places.map((place) => (
+                  <PlaceCard
+                    key={place.id}
+                    id={place.id}
+                    title={place.name}
+                    description={place.description}
+                    image={place.images[0] || ''}
+                    category={place.category}
+                    youtuberCount={0} // TODO: 실제 유튜버 카운트 데이터
+                    distance="거리 정보 없음" // TODO: 실제 거리 계산
+                    rating={place.rating}
+                  />
+                ))}
+              </div>
+            )}
 
             {/* 빈 상태 */}
-            {filteredPlaces.length === 0 && (
+            {!isLoading && places.length === 0 && (
               <div className="text-center py-12">
                 <div className="text-gray-400 text-lg mb-2">검색 결과가 없습니다</div>
                 <div className="text-gray-500 text-sm">다른 카테고리나 검색어를 시도해보세요</div>
+              </div>
+            )}
+
+            {/* 페이지네이션 (추후 구현) */}
+            {pagination && pagination.totalPages > 1 && (
+              <div className="mt-8 text-center">
+                <div className="text-gray-400 text-sm">
+                  {pagination.page} / {pagination.totalPages} 페이지 
+                  (총 {pagination.total}개 장소)
+                </div>
               </div>
             )}
           </section>
@@ -382,10 +275,10 @@ export default function HomePage() {
         <MobileFilterModal
           isOpen={mobileFilterOpen}
           onClose={() => setMobileFilterOpen(false)}
-          selectedLocation={selectedLocation}
-          onLocationChange={handleLocationChange}
-          selectedYoutuberCounts={selectedYoutuberCounts}
-          onYoutuberCountChange={handleYoutuberCountChange}
+          selectedLocation=""
+          onLocationChange={() => {}} // TODO: 위치 필터 구현
+          selectedYoutuberCounts={[]}
+          onYoutuberCountChange={() => {}} // TODO: 유튜버 카운트 필터 구현
           onClearFilters={handleClearFilters}
           onApplyFilters={handleApplyFilters}
         />

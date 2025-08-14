@@ -1,0 +1,21 @@
+{
+  "success": true,
+  "data": {
+    "id": "place-new-123",
+    "name": "새로운 장소",
+    "description": "새로 추가된 멋진 장소입니다.",
+    "address": "서울특별시 강남구 테헤란로 123",
+    "category": "맛집",
+    "images": [],
+    "coordinates": {
+      "lat": 37.5665,
+      "lng": 126.9780
+    },
+    "rating": 0,
+    "reviewCount": 0,
+    "tags": [],
+    "createdAt": "2024-03-20T10:30:00Z",
+    "updatedAt": "2024-03-20T10:30:00Z"
+  },
+  "message": "장소가 성공적으로 생성되었습니다."
+}

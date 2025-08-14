@@ -1,0 +1,39 @@
+{
+  "success": true,
+  "data": {
+    "id": "place-1",
+    "name": "경복궁",
+    "description": "조선 왕조의 법궁으로 한국의 대표적인 궁궐입니다. 아름다운 전통 건축물과 정원을 감상할 수 있습니다. 근정전, 경회루, 향원정 등 많은 볼거리가 있으며, 수문장 교대식도 관람할 수 있습니다.",
+    "address": "서울특별시 종로구 사직로 161",
+    "category": "관광지",
+    "images": [
+      "https://images.unsplash.com/photo-1578662996442-48f60103fc96",
+      "https://images.unsplash.com/photo-1559827260-dc66d52bef19",
+      "https://images.unsplash.com/photo-1578662996442-48f60103fc96",
+      "https://images.unsplash.com/photo-1559827260-dc66d52bef19"
+    ],
+    "coordinates": {
+      "lat": 37.5788408,
+      "lng": 126.9770184
+    },
+    "rating": 4.5,
+    "reviewCount": 1245,
+    "tags": ["궁궐", "역사", "전통건축", "포토스팟", "수문장교대식", "근정전"],
+    "openingHours": {
+      "monday": "09:00-17:00",
+      "tuesday": "09:00-17:00",
+      "wednesday": "09:00-17:00",
+      "thursday": "09:00-17:00",
+      "friday": "09:00-17:00",
+      "saturday": "09:00-18:00",
+      "sunday": "09:00-18:00"
+    },
+    "contact": {
+      "phone": "02-3700-3900",
+      "website": "http://www.royalpalace.go.kr",
+      "email": "info@royalpalace.go.kr"
+    },
+    "createdAt": "2024-01-15T10:30:00Z",
+    "updatedAt": "2024-03-10T14:20:00Z"
+  }
+}
