@@ -1,11 +1,24 @@
 'use client'
 
 import React, { useEffect, useState, useRef, useMemo, useCallback } from 'react'
+import dynamic from 'next/dynamic'
 import CategoryFilter from '@/components/filter/CategoryFilter'
-import MapContainer from '@/components/map/MapContainer'
 import PlaceSlider from '@/components/map/PlaceSlider'
 import PlaceDetailModal from '@/components/map/PlaceDetailModal'
 import { useNearbyPlaces } from '@/hooks'
+
+// MapContainer를 동적으로 import (SSR 비활성화)
+const MapContainer = dynamic(() => import('@/components/map/MapContainer'), {
+  ssr: false,
+  loading: () => (
+    <div className="relative flex-1 bg-gray-800 flex items-center justify-center">
+      <div className="text-white text-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto mb-2"></div>
+        <p>지도를 불러오는 중...</p>
+      </div>
+    </div>
+  )
+})
 
 interface Position {
   lat: number

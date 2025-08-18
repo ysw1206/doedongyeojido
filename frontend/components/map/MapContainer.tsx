@@ -55,23 +55,40 @@ export default function MapContainer({
 
   // 지도 초기화
   useEffect(() => {
-    if (!pos || !mapRef.current || !isKakaoLoaded || typeof window === 'undefined') {
-      console.log('지도 초기화 조건 미충족:', { pos, mapRef: mapRef.current, isKakaoLoaded })
+    // 클라이언트 사이드에서만 실행되도록 추가 체크
+    if (typeof window === 'undefined') {
+      console.log('❌ 서버 사이드에서 실행됨 - 스킵')
+      return
+    }
+
+    console.log('🔍 지도 초기화 조건 체크:', {
+      pos: !!pos,
+      mapRefCurrent: !!mapRef.current,
+      isKakaoLoaded,
+      windowKakao: !!(window as any).kakao
+    })
+
+    if (!pos || !mapRef.current || !isKakaoLoaded) {
+      console.log('❌ 지도 초기화 조건 미충족:', { 
+        pos: !!pos, 
+        mapRef: !!mapRef.current, 
+        isKakaoLoaded 
+      })
       return
     }
 
     if (!window.kakao || !window.kakao.maps || !window.kakao.maps.LatLng) {
-      console.log('카카오맵 API 객체가 준비되지 않았습니다.')
+      console.log('❌ 카카오맵 API 객체가 준비되지 않았습니다.')
       return
     }
 
     // 이미 지도가 초기화되어 있으면 중복 초기화 방지
     if (mapInstanceRef.current) {
-      console.log('지도가 이미 초기화되어 있습니다.')
+      console.log('✅ 지도가 이미 초기화되어 있습니다.')
       return
     }
 
-    console.log('지도 초기화 시작', { pos })
+    console.log('🚀 지도 초기화 시작', { pos })
 
     try {
       // LatLng 생성 테스트
@@ -212,6 +229,8 @@ export default function MapContainer({
     
     markersRef.current = newMarkers
   }, [places]) // onMarkerClick 제거
+
+  console.log('지도 초기화 조건 미충족:', { pos, mapRef: mapRef.current, isKakaoLoaded })
 
   return (
     <div className="relative flex-1">
