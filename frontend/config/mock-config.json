@@ -71,6 +71,14 @@
         "description": "카테고리 목록 조회"
       }
     },
+    "/api/places/nearby": {
+      "GET": {
+        "enabled": true,
+        "dataFile": "/places/nearby.json",
+        "delay": 400,
+        "description": "주변 장소 조회"
+      }
+    },
     "/api/shorts": {
       "GET": {
         "enabled": true,

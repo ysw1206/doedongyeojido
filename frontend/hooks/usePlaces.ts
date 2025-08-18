@@ -49,11 +49,12 @@ export const usePlace = (placeId?: string) => {
       revalidateOnFocus: false,
       dedupingInterval: 5000,
       errorRetryCount: 3,
+      errorRetryInterval: 5000,
     }
   );
 
   return { 
-    place: data,
+    place: data, 
     error, 
     isLoading, 
     refresh: mutate 
@@ -63,21 +64,25 @@ export const usePlace = (placeId?: string) => {
 /**
  * 장소 검색 훅
  */
-export const useSearchPlaces = (query?: string, filters?: SearchFilters) => {
-  const searchKey = query ? `/api/places/search?q=${encodeURIComponent(query)}` : null;
+export const useSearchPlaces = (filters?: SearchFilters) => {
+  const key = filters 
+    ? `/api/places/search?${new URLSearchParams(filters as Record<string, string>).toString()}` 
+    : null;
   
   const { data, error, isLoading, mutate } = useSWR(
-    searchKey,
-    () => query ? searchPlaces(query, filters) : null,
+    key,
+    () => filters ? searchPlaces(filters) : null,
     {
       revalidateOnFocus: false,
-      dedupingInterval: 2000,
-      errorRetryCount: 2,
+      dedupingInterval: 5000,
+      errorRetryCount: 3,
+      errorRetryInterval: 5000,
     }
   );
 
   return { 
-    places: data || [],
+    places: data?.places || [],
+    pagination: data?.pagination,
     error, 
     isLoading, 
     refresh: mutate 
@@ -93,13 +98,14 @@ export const useCategories = () => {
     fetchPlaceCategories,
     {
       revalidateOnFocus: false,
-      dedupingInterval: 300000, // 5분
+      dedupingInterval: 60000, // 1분
       errorRetryCount: 3,
+      errorRetryInterval: 5000,
     }
   );
 
   return { 
-    categories: data || [],
+    categories: data || [], 
     error, 
     isLoading, 
     refresh: mutate 
@@ -107,25 +113,35 @@ export const useCategories = () => {
 };
 
 /**
- * 인근 장소 조회 훅
+ * 주변 장소 조회 훅
  */
-export const useNearbyPlaces = (lat?: number, lng?: number, radius?: number, limit?: number) => {
-  const key = lat && lng 
-    ? `/api/places/nearby?lat=${lat}&lng=${lng}&radius=${radius}&limit=${limit}` 
-    : null;
+export const useNearbyPlaces = (params?: {
+  lat?: number;
+  lng?: number;
+  radius?: number;
+  category?: string;
+  limit?: number;
+  youtuberCount?: number;
+  search?: string;
+}) => {
+  const key = params 
+    ? `/api/places/nearby?${new URLSearchParams(params as Record<string, string>).toString()}` 
+    : '/api/places/nearby';
   
   const { data, error, isLoading, mutate } = useSWR(
     key,
-    () => lat && lng ? fetchNearbyPlaces(lat, lng, radius, limit) : null,
+    () => fetchNearbyPlaces(params),
     {
       revalidateOnFocus: false,
-      dedupingInterval: 10000,
-      errorRetryCount: 2,
+      dedupingInterval: 5000,
+      errorRetryCount: 3,
+      errorRetryInterval: 5000,
     }
   );
 
   return { 
-    places: data || [],
+    places: data?.places || [],
+    pagination: data?.pagination,
     error, 
     isLoading, 
     refresh: mutate 
@@ -135,19 +151,20 @@ export const useNearbyPlaces = (lat?: number, lng?: number, radius?: number, lim
 /**
  * 추천 장소 조회 훅
  */
-export const useRecommendedPlaces = (userId?: string, limit?: number) => {
+export const useRecommendedPlaces = (userId?: string, limit: number = 10) => {
   const { data, error, isLoading, mutate } = useSWR(
-    '/api/places/recommended',
+    `/api/places/recommended?userId=${userId || ''}&limit=${limit}`,
     () => fetchRecommendedPlaces(userId, limit),
     {
       revalidateOnFocus: false,
-      dedupingInterval: 30000, // 30초
+      dedupingInterval: 10000,
       errorRetryCount: 3,
+      errorRetryInterval: 5000,
     }
   );
 
   return { 
-    places: data || [],
+    places: data || [], 
     error, 
     isLoading, 
     refresh: mutate 
@@ -157,21 +174,20 @@ export const useRecommendedPlaces = (userId?: string, limit?: number) => {
 /**
  * 인기 장소 조회 훅
  */
-export const usePopularPlaces = (category?: string, limit?: number) => {
-  const key = `/api/places/popular${category ? `?category=${category}` : ''}`;
-  
+export const usePopularPlaces = (category?: string, limit: number = 10) => {
   const { data, error, isLoading, mutate } = useSWR(
-    key,
+    `/api/places/popular?category=${category || ''}&limit=${limit}`,
     () => fetchPopularPlaces(category, limit),
     {
       revalidateOnFocus: false,
-      dedupingInterval: 60000, // 1분
+      dedupingInterval: 10000,
       errorRetryCount: 3,
+      errorRetryInterval: 5000,
     }
   );
 
   return { 
-    places: data || [],
+    places: data || [], 
     error, 
     isLoading, 
     refresh: mutate 

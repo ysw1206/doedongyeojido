@@ -1,0 +1,234 @@
+{
+    "success": true,
+    "data": [
+      {
+        "id": "nearby-1",
+        "name": "강남역 이자카야 혼가츠",
+        "description": "정통 일본식 이자카야로 신선한 사시미와 다양한 안주가 유명합니다. 직장인들에게 인기 있는 장소입니다.",
+        "address": "서울 강남구 강남대로 123",
+        "category": "일식",
+        "images": ["https://img.youtube.com/vi/6e2qb_9w4TE/maxresdefault.jpg"],
+        "coordinates": {
+          "lat": 37.498095,
+          "lng": 127.027610
+        },
+        "rating": 4.3,
+        "reviewCount": 387,
+        "tags": ["이자카야", "사시미", "직장인맛집"],
+        "videoId": "6e2qb_9w4TE",
+        "youtuberName": "먹방유튜버 김철수",
+        "viewCount": "조회수 125,000회",
+        "uploadTime": "2주 전",
+        "duration": "15:30",
+        "distance": "500m",
+        "isFavorite": true,
+        "youtuberCount": 3,
+        "openingHours": {
+          "monday": "17:00-24:00",
+          "tuesday": "17:00-24:00",
+          "wednesday": "17:00-24:00",
+          "thursday": "17:00-24:00",
+          "friday": "17:00-02:00",
+          "saturday": "17:00-02:00",
+          "sunday": "17:00-23:00"
+        },
+        "contact": {
+          "phone": "02-1234-5678"
+        },
+        "createdAt": "2024-01-15T10:30:00Z",
+        "updatedAt": "2024-03-10T14:20:00Z"
+      },
+      {
+        "id": "nearby-2",
+        "name": "홍대 디저트 카페 스위트핑크",
+        "description": "인스타그램에서 핫한 디저트 카페! 특히 딸기 케이크와 마카롱이 맛있습니다.",
+        "address": "서울 마포구 홍대로 456",
+        "category": "디저트",
+        "images": ["https://img.youtube.com/vi/k9pte2X-4NA/maxresdefault.jpg"],
+        "coordinates": {
+          "lat": 37.557192,
+          "lng": 126.925382
+        },
+        "rating": 4.7,
+        "reviewCount": 542,
+        "tags": ["디저트", "카페", "인스타핫플"],
+        "videoId": "k9pte2X-4NA",
+        "youtuberName": "카페투어 이영희",
+        "viewCount": "조회수 82,000회",
+        "uploadTime": "1주 전",
+        "duration": "12:45",
+        "distance": "1.2km",
+        "isFavorite": false,
+        "youtuberCount": 5,
+        "openingHours": {
+          "monday": "10:00-22:00",
+          "tuesday": "10:00-22:00",
+          "wednesday": "10:00-22:00",
+          "thursday": "10:00-22:00",
+          "friday": "10:00-23:00",
+          "saturday": "10:00-23:00",
+          "sunday": "10:00-21:00"
+        },
+        "contact": {
+          "phone": "02-2345-6789"
+        },
+        "createdAt": "2024-01-20T09:15:00Z",
+        "updatedAt": "2024-03-15T16:45:00Z"
+      },
+      {
+        "id": "nearby-3",
+        "name": "신촌 술집 포차마을",
+        "description": "대학생들이 자주 찾는 가성비 좋은 포차입니다. 안주가 푸짐하고 분위기도 좋아요!",
+        "address": "서울 서대문구 신촌로 789",
+        "category": "술집",
+        "images": ["https://img.youtube.com/vi/lNW3omIZZW4/maxresdefault.jpg"],
+        "coordinates": {
+          "lat": 37.555946,
+          "lng": 126.936378
+        },
+        "rating": 4.1,
+        "reviewCount": 234,
+        "tags": ["포차", "술집", "대학가"],
+        "videoId": "lNW3omIZZW4",
+        "youtuberName": "술집탐방 박민수",
+        "viewCount": "조회수 57,000회",
+        "uploadTime": "3일 전",
+        "duration": "18:20",
+        "distance": "800m",
+        "isFavorite": true,
+        "youtuberCount": 2,
+        "openingHours": {
+          "monday": "17:00-02:00",
+          "tuesday": "17:00-02:00",
+          "wednesday": "17:00-02:00",
+          "thursday": "17:00-02:00",
+          "friday": "17:00-03:00",
+          "saturday": "17:00-03:00",
+          "sunday": "17:00-24:00"
+        },
+        "contact": {
+          "phone": "02-3456-7890"
+        },
+        "createdAt": "2024-02-01T12:00:00Z",
+        "updatedAt": "2024-03-05T11:30:00Z"
+      },
+      {
+        "id": "nearby-4",
+        "name": "종로 한정식 궁",
+        "description": "전통 한정식을 맛볼 수 있는 고급 레스토랑입니다. 특별한 날 식사하기 좋은 곳이에요.",
+        "address": "서울 종로구 종로 101",
+        "category": "한식",
+        "images": ["https://img.youtube.com/vi/hbFzeLwe7yg/maxresdefault.jpg"],
+        "coordinates": {
+          "lat": 37.570377,
+          "lng": 126.983432
+        },
+        "rating": 4.8,
+        "reviewCount": 156,
+        "tags": ["한정식", "고급식당", "특별한날"],
+        "videoId": "hbFzeLwe7yg",
+        "youtuberName": "한식맛집 최지영",
+        "viewCount": "조회수 153,000회",
+        "uploadTime": "1달 전",
+        "duration": "25:15",
+        "distance": "2.1km",
+        "isFavorite": false,
+        "youtuberCount": 7,
+        "openingHours": {
+          "monday": "11:30-21:00",
+          "tuesday": "11:30-21:00",
+          "wednesday": "11:30-21:00",
+          "thursday": "11:30-21:00",
+          "friday": "11:30-21:30",
+          "saturday": "11:30-21:30",
+          "sunday": "11:30-20:00"
+        },
+        "contact": {
+          "phone": "02-4567-8901"
+        },
+        "createdAt": "2024-02-10T08:00:00Z",
+        "updatedAt": "2024-03-12T10:15:00Z"
+      },
+      {
+        "id": "nearby-5",
+        "name": "이태원 멕시칸 레스토랑 아미고",
+        "description": "정통 멕시칸 음식을 맛볼 수 있는 곳입니다. 타코와 부리또가 특히 맛있어요!",
+        "address": "서울 용산구 이태원로 234",
+        "category": "양식",
+        "images": ["https://img.youtube.com/vi/28nYi3wP60s/maxresdefault.jpg"],
+        "coordinates": {
+          "lat": 37.534621,
+          "lng": 126.994364
+        },
+        "rating": 4.4,
+        "reviewCount": 298,
+        "tags": ["멕시칸", "타코", "이태원"],
+        "videoId": "28nYi3wP60s",
+        "youtuberName": "세계음식탐방 김세계",
+        "viewCount": "조회수 94,000회",
+        "uploadTime": "5일 전",
+        "duration": "20:10",
+        "distance": "1.8km",
+        "isFavorite": true,
+        "youtuberCount": 4,
+        "openingHours": {
+          "monday": "11:00-22:00",
+          "tuesday": "11:00-22:00",
+          "wednesday": "11:00-22:00",
+          "thursday": "11:00-22:00",
+          "friday": "11:00-23:00",
+          "saturday": "11:00-23:00",
+          "sunday": "11:00-21:00"
+        },
+        "contact": {
+          "phone": "02-5678-9012"
+        },
+        "createdAt": "2024-02-15T14:30:00Z",
+        "updatedAt": "2024-03-18T16:20:00Z"
+      },
+      {
+        "id": "nearby-6",
+        "name": "명동 한우구이 소한마리",
+        "description": "최고급 한우를 맛볼 수 있는 곳입니다. 가격은 비싸지만 그만한 가치가 있어요!",
+        "address": "서울 중구 명동길 567",
+        "category": "고기집",
+        "images": ["https://img.youtube.com/vi/Lng9Vm56Fzs/maxresdefault.jpg"],
+        "coordinates": {
+          "lat": 37.563523,
+          "lng": 126.982593
+        },
+        "rating": 4.6,
+        "reviewCount": 423,
+        "tags": ["한우", "고급고기", "명동"],
+        "videoId": "Lng9Vm56Fzs",
+        "youtuberName": "고기맛집 정육각",
+        "viewCount": "조회수 167,000회",
+        "uploadTime": "1주 전",
+        "duration": "22:30",
+        "distance": "1.5km",
+        "isFavorite": false,
+        "youtuberCount": 6,
+        "openingHours": {
+          "monday": "11:30-22:00",
+          "tuesday": "11:30-22:00",
+          "wednesday": "11:30-22:00",
+          "thursday": "11:30-22:00",
+          "friday": "11:30-22:30",
+          "saturday": "11:30-22:30",
+          "sunday": "11:30-21:00"
+        },
+        "contact": {
+          "phone": "02-6789-0123"
+        },
+        "createdAt": "2024-02-20T11:00:00Z",
+        "updatedAt": "2024-03-20T13:45:00Z"
+      }
+    ],
+    "pagination": {
+      "page": 1,
+      "limit": 20,
+      "total": 6,
+      "totalPages": 1
+    },
+    "message": "주변 장소 목록을 성공적으로 조회했습니다."
+  }

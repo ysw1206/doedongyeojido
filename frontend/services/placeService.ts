@@ -49,15 +49,15 @@ export const fetchPlace = async (placeId: string): Promise<PlaceExtended> => {
  * 장소 생성
  */
 export const createPlace = async (placeData: CreatePlaceRequest): Promise<PlaceExtended> => {
-  const res = await post<PlaceResponse>('/api/places', placeData);
+  const res = await post<PlaceResponse>('/api/places', placeData, true);
   return res.data;
 };
 
 /**
- * 장소 정보 업데이트
+ * 장소 정보 수정
  */
-export const updatePlace = async (placeId: string, data: UpdatePlaceRequest): Promise<PlaceExtended> => {
-  const res = await put<PlaceResponse>(`/api/places/${placeId}`, data);
+export const updatePlace = async (placeId: string, placeData: UpdatePlaceRequest): Promise<PlaceExtended> => {
+  const res = await put<PlaceResponse>(`/api/places/${placeId}`, placeData, true);
   return res.data;
 };
 
@@ -65,39 +65,26 @@ export const updatePlace = async (placeId: string, data: UpdatePlaceRequest): Pr
  * 장소 삭제
  */
 export const deletePlace = async (placeId: string): Promise<void> => {
-  await del(`/api/places/${placeId}`);
+  await del(`/api/places/${placeId}`, null, true);
 };
 
 /**
  * 장소 검색
  */
-export const searchPlaces = async (
-  query: string,
-  filters?: SearchFilters
-): Promise<PlaceExtended[]> => {
-  const searchParams: any = { search: query };
-  
-  if (filters) {
-    if (filters.categories?.length) {
-      searchParams.categories = filters.categories.join(',');
-    }
-    if (filters.tags?.length) {
-      searchParams.tags = filters.tags.join(',');
-    }
-    if (filters.minRating) {
-      searchParams.minRating = filters.minRating;
-    }
-    if (filters.maxDistance) {
-      searchParams.maxDistance = filters.maxDistance;
-    }
-    if (filters.priceRange) {
-      searchParams.minPrice = filters.priceRange.min;
-      searchParams.maxPrice = filters.priceRange.max;
-    }
-  }
-
-  const res = await get<PlaceSearchResponse>('/api/places/search', searchParams, true);
-  return res.data;
+export const searchPlaces = async (filters: SearchFilters): Promise<{
+  places: PlaceExtended[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}> => {
+  const res = await get<PlaceListResponse>('/api/places/search', filters, true);
+  return {
+    places: res.data,
+    pagination: res.pagination,
+  };
 };
 
 /**
@@ -105,6 +92,51 @@ export const searchPlaces = async (
  */
 export const fetchPlaceCategories = async (): Promise<Category[]> => {
   const res = await get<CategoryResponse>('/api/places/categories', null, true);
+  return res.data;
+};
+
+/**
+ * 주변 장소 조회
+ */
+export const fetchNearbyPlaces = async (params?: {
+  lat?: number;
+  lng?: number;
+  radius?: number;
+  category?: string;
+  limit?: number;
+  youtuberCount?: number;
+  search?: string;
+}): Promise<{
+  places: PlaceExtended[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}> => {
+  const res = await get<PlaceListResponse>('/api/places/nearby', params, true);
+  return {
+    places: res.data,
+    pagination: res.pagination,
+  };
+};
+
+/**
+ * 추천 장소 조회
+ */
+export const fetchRecommendedPlaces = async (userId?: string, limit: number = 10): Promise<PlaceExtended[]> => {
+  const params = { userId, limit };
+  const res = await get<PlaceListResponse>('/api/places/recommended', params, true);
+  return res.data;
+};
+
+/**
+ * 인기 장소 조회
+ */
+export const fetchPopularPlaces = async (category?: string, limit: number = 10): Promise<PlaceExtended[]> => {
+  const params = { category, limit };
+  const res = await get<PlaceListResponse>('/api/places/popular', params, true);
   return res.data;
 };
 
@@ -124,11 +156,8 @@ export const fetchPlaceReviews = async (
     totalPages: number;
   };
 }> => {
-  const res = await get<ReviewListResponse>(
-    `/api/places/${placeId}/reviews`,
-    { page, limit },
-    true
-  );
+  const params = { page, limit };
+  const res = await get<ReviewListResponse>(`/api/places/${placeId}/reviews`, params, true);
   return {
     reviews: res.data,
     pagination: res.pagination,
@@ -138,19 +167,16 @@ export const fetchPlaceReviews = async (
 /**
  * 리뷰 작성
  */
-export const createReview = async (reviewData: CreateReviewRequest): Promise<Review> => {
-  const res = await post<ReviewResponse>(`/api/places/${reviewData.placeId}/reviews`, reviewData);
+export const createReview = async (placeId: string, reviewData: CreateReviewRequest): Promise<Review> => {
+  const res = await post<ReviewResponse>(`/api/places/${placeId}/reviews`, reviewData, true);
   return res.data;
 };
 
 /**
  * 리뷰 수정
  */
-export const updateReview = async (
-  reviewId: string,
-  data: Partial<CreateReviewRequest>
-): Promise<Review> => {
-  const res = await put<ReviewResponse>(`/api/reviews/${reviewId}`, data);
+export const updateReview = async (reviewId: string, reviewData: Partial<CreateReviewRequest>): Promise<Review> => {
+  const res = await put<ReviewResponse>(`/api/reviews/${reviewId}`, reviewData, true);
   return res.data;
 };
 
@@ -158,87 +184,40 @@ export const updateReview = async (
  * 리뷰 삭제
  */
 export const deleteReview = async (reviewId: string): Promise<void> => {
-  await del(`/api/reviews/${reviewId}`);
+  await del(`/api/reviews/${reviewId}`, null, true);
 };
 
 /**
  * 즐겨찾기 목록 조회
  */
-export const fetchFavorites = async (): Promise<PlaceExtended[]> => {
-  const res = await get<FavoriteListResponse>('/api/users/favorites');
-  return res.data;
+export const fetchFavorites = async (page: number = 1, limit: number = 10): Promise<{
+  favorites: any[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}> => {
+  const params = { page, limit };
+  const res = await get<FavoriteListResponse>('/api/users/favorites', params, true);
+  return {
+    favorites: res.data,
+    pagination: res.pagination,
+  };
 };
 
 /**
  * 즐겨찾기 추가
  */
-export const addToFavorites = async (placeId: string): Promise<void> => {
-  await post<FavoriteResponse>('/api/users/favorites', { placeId });
+export const addToFavorites = async (placeId: string): Promise<any> => {
+  const res = await post<FavoriteResponse>('/api/users/favorites', { placeId }, true);
+  return res.data;
 };
 
 /**
  * 즐겨찾기 제거
  */
 export const removeFromFavorites = async (placeId: string): Promise<void> => {
-  await del(`/api/users/favorites/${placeId}`);
-};
-
-/**
- * 인근 장소 조회
- */
-export const fetchNearbyPlaces = async (
-  lat: number,
-  lng: number,
-  radius: number = 1000, // 미터 단위
-  limit: number = 10
-): Promise<PlaceExtended[]> => {
-  const res = await get<PlaceListResponse>(
-    '/api/places',
-    {
-      lat,
-      lng,
-      radius,
-      limit,
-      sortBy: 'distance',
-    },
-    true
-  );
-  return res.data;
-};
-
-/**
- * 추천 장소 조회
- */
-export const fetchRecommendedPlaces = async (
-  userId?: string,
-  limit: number = 10
-): Promise<PlaceExtended[]> => {
-  const params: any = { limit, sortBy: 'rating', sortOrder: 'desc' };
-  if (userId) {
-    params.recommendFor = userId;
-  }
-  
-  const res = await get<PlaceListResponse>('/api/places', params, true);
-  return res.data;
-};
-
-/**
- * 인기 장소 조회
- */
-export const fetchPopularPlaces = async (
-  category?: string,
-  limit: number = 10
-): Promise<PlaceExtended[]> => {
-  const params: any = { 
-    limit, 
-    sortBy: 'reviewCount', 
-    sortOrder: 'desc'
-  };
-  
-  if (category) {
-    params.category = category;
-  }
-  
-  const res = await get<PlaceListResponse>('/api/places', params, true);
-  return res.data;
+  await del(`/api/users/favorites/${placeId}`, null, true);
 };

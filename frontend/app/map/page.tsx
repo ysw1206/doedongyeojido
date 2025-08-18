@@ -1,105 +1,22 @@
 'use client'
 
-import React, { useEffect, useState, useRef } from 'react'
-import { Metadata } from 'next'
+import React, { useEffect, useState, useRef, useMemo } from 'react'
 import CategoryFilter from '@/components/filter/CategoryFilter'
+import { useNearbyPlaces } from '@/hooks'
 
 interface Position {
   lat: number
   lng: number
 }
 
-interface Place {
-  id: string
-  title: string
-  category: string
-  address: string
-  lat: number
-  lng: number
-  youtuberCount: number
-  distance: string
-  isFavorite: boolean
-  image: string
-  youtuberName: string
-  viewCount: string
-}
-
 // 카카오맵 API 키 (실제 환경에서는 환경변수로 관리)
 const KAKAO_MAP_API_KEY = process.env.NEXT_PUBLIC_KAKAO_MAP_API_KEY || 'b0b54392c8c4be75d2000792a7f3c58e'
-
-// 샘플 이미지 URL (안정적인 이미지 사용)
-const SAMPLE_IMAGES = [
-  'https://img.youtube.com/vi/6e2qb_9w4TE/maxresdefault.jpg',
-  'https://img.youtube.com/vi/k9pte2X-4NA/maxresdefault.jpg',
-  'https://img.youtube.com/vi/lNW3omIZZW4/maxresdefault.jpg',
-  'https://img.youtube.com/vi/hbFzeLwe7yg/maxresdefault.jpg'
-]
-
-// 샘플 맛집 데이터 생성 함수
-const getSamplePlaces = (): Place[] => [
-  {
-    id: '1',
-    title: '강남역 이자카야',
-    category: '일식',
-    address: '서울 강남구 강남대로 123',
-    lat: 37.498095,
-    lng: 127.027610,
-    youtuberCount: 3,
-    distance: '500m',
-    isFavorite: true,
-    image: SAMPLE_IMAGES[0],
-    youtuberName: '먹방유튜버 김철수',
-    viewCount: '12.5만회'
-  },
-  {
-    id: '2',
-    title: '홍대 디저트 카페',
-    category: '디저트',
-    address: '서울 마포구 홍대로 456',
-    lat: 37.557192,
-    lng: 126.925382,
-    youtuberCount: 5,
-    distance: '1.2km',
-    isFavorite: false,
-    image: SAMPLE_IMAGES[1],
-    youtuberName: '카페투어 이영희',
-    viewCount: '8.2만회'
-  },
-  {
-    id: '3',
-    title: '신촌 술집',
-    category: '술집',
-    address: '서울 서대문구 신촌로 789',
-    lat: 37.555946,
-    lng: 126.936378,
-    youtuberCount: 2,
-    distance: '800m',
-    isFavorite: true,
-    image: SAMPLE_IMAGES[2],
-    youtuberName: '술집탐방 박민수',
-    viewCount: '5.7만회'
-  },
-  {
-    id: '4',
-    title: '종로 한정식',
-    category: '한식',
-    address: '서울 종로구 종로 101',
-    lat: 37.570377,
-    lng: 126.983432,
-    youtuberCount: 7,
-    distance: '2.1km',
-    isFavorite: false,
-    image: SAMPLE_IMAGES[3],
-    youtuberName: '한식맛집 최지영',
-    viewCount: '15.3만회'
-  }
-]
 
 export default function MapPage() {
   const [pos, setPos] = useState<Position | null>(null)
   const [selectedCategory, setSelectedCategory] = useState('all')
   const [searchQuery, setSearchQuery] = useState('')
-  const [selectedPlace, setSelectedPlace] = useState<Place | null>(null)
+  const [selectedPlace, setSelectedPlace] = useState<any | null>(null)
   const [showFilters, setShowFilters] = useState(false)
   const [distanceFilter, setDistanceFilter] = useState('3km')
   const [youtuberCountFilter, setYoutuberCountFilter] = useState('1')
@@ -112,6 +29,35 @@ export default function MapPage() {
   const mapRef = useRef<HTMLDivElement>(null)
   const sliderRef = useRef<HTMLDivElement>(null)
   const markersRef = useRef<any[]>([])
+
+  // 주변 장소 쿼리 파라미터 생성
+  const nearbyQuery = useMemo(() => {
+    if (!pos) return undefined;
+    
+    return {
+      lat: pos.lat,
+      lng: pos.lng,
+      radius: parseFloat(distanceFilter.replace(/[km]/g, '')) * 1000, // km를 m로 변환
+      category: selectedCategory !== 'all' ? selectedCategory : undefined,
+      search: searchQuery || undefined,
+      youtuberCount: parseInt(youtuberCountFilter),
+      limit: 20
+    };
+  }, [pos, selectedCategory, searchQuery, distanceFilter, youtuberCountFilter]);
+
+  // SWR 훅으로 주변 장소 데이터 가져오기
+  const { places: nearbyPlaces, isLoading: placesLoading, error: placesError, refresh } = useNearbyPlaces(nearbyQuery);
+
+  // 필터링된 장소 목록 (클라이언트 사이드 추가 필터링)
+  const filteredPlaces = useMemo(() => {
+    return nearbyPlaces.filter(place => {
+      // 검색 필터 (서버에서 이미 필터링되지만 추가 클라이언트 필터링)
+      if (searchQuery && !place.name.toLowerCase().includes(searchQuery.toLowerCase())) {
+        return false;
+      }
+      return true;
+    });
+  }, [nearbyPlaces, searchQuery]);
 
   // 카카오맵 API 로드
   useEffect(() => {
@@ -240,36 +186,6 @@ export default function MapPage() {
     }
   }, [])
 
-  // 샘플 맛집 데이터
-  const samplePlaces = getSamplePlaces()
-
-  // 필터링된 맛집 목록
-  const filteredPlaces = samplePlaces.filter(place => {
-    // 카테고리 필터
-    if (selectedCategory !== 'all' && place.category !== selectedCategory) {
-      return false
-    }
-    
-    // 검색 필터
-    if (searchQuery && !place.title.toLowerCase().includes(searchQuery.toLowerCase())) {
-      return false
-    }
-    
-    // 거리 필터 (실제로는 현재 위치 기준으로 계산)
-    const distance = parseFloat(place.distance.replace(/[km]/g, ''))
-    const maxDistance = parseFloat(distanceFilter.replace(/[km]/g, ''))
-    if (place.distance.includes('km') && distance > maxDistance) {
-      return false
-    }
-    
-    // 유튜버 수 필터
-    if (place.youtuberCount < parseInt(youtuberCountFilter)) {
-      return false
-    }
-    
-    return true
-  })
-
   // 지도 초기화
   useEffect(() => {
     if (!pos || !mapRef.current || !isKakaoLoaded || typeof window === 'undefined') {
@@ -377,7 +293,7 @@ export default function MapPage() {
     const newMarkers: any[] = []
 
     filteredPlaces.forEach((place, index) => {
-      const markerPosition = new window.kakao.maps.LatLng(place.lat, place.lng)
+      const markerPosition = new window.kakao.maps.LatLng(place.coordinates.lat, place.coordinates.lng)
       
       // 마커 이미지 생성
       const imageSrc = place.isFavorite 
@@ -401,7 +317,7 @@ export default function MapPage() {
       const marker = new window.kakao.maps.Marker({
         position: markerPosition,
         image: markerImage,
-        title: place.title
+        title: place.name
       })
 
       // 마커 클릭 이벤트
@@ -439,11 +355,11 @@ export default function MapPage() {
     console.log('음성 검색')
   }
 
-  const handlePlaceClick = (place: Place) => {
+  const handlePlaceClick = (place: any) => {
     setSelectedPlace(place)
     // 지도에서 해당 위치로 이동
     if (map && typeof window !== 'undefined' && window.kakao && window.kakao.maps) {
-      const moveLatLng = new window.kakao.maps.LatLng(place.lat, place.lng)
+      const moveLatLng = new window.kakao.maps.LatLng(place.coordinates.lat, place.coordinates.lng)
       map.panTo(moveLatLng)
       map.setLevel(3)
     }
@@ -458,8 +374,8 @@ export default function MapPage() {
     // 실제로는 API 호출로 상태 업데이트
   }
 
-  const handleGetDirections = (place: Place) => {
-    const url = `https://map.kakao.com/link/to/${place.title},${place.lat},${place.lng}`
+  const handleGetDirections = (place: any) => {
+    const url = `https://map.kakao.com/link/to/${place.name},${place.coordinates.lat},${place.coordinates.lng}`
     window.open(url, '_blank')
   }
 
@@ -479,19 +395,19 @@ export default function MapPage() {
       // 선택된 장소로 지도 중심 이동
       const selectedPlace = filteredPlaces[newIndex]
       if (map && selectedPlace && typeof window !== 'undefined' && window.kakao && window.kakao.maps) {
-        const moveLatLng = new window.kakao.maps.LatLng(selectedPlace.lat, selectedPlace.lng)
+        const moveLatLng = new window.kakao.maps.LatLng(selectedPlace.coordinates.lat, selectedPlace.coordinates.lng)
         map.panTo(moveLatLng)
       }
     }
   }
 
   // 슬라이더 아이템 클릭 핸들러
-  const handleSliderItemClick = (place: Place, index: number) => {
+  const handleSliderItemClick = (place: any, index: number) => {
     setSelectedPlaceIndex(index)
     
     // 지도 중심을 해당 위치로 이동
     if (map && typeof window !== 'undefined' && window.kakao && window.kakao.maps) {
-      const moveLatLng = new window.kakao.maps.LatLng(place.lat, place.lng)
+      const moveLatLng = new window.kakao.maps.LatLng(place.coordinates.lat, place.coordinates.lng)
       map.panTo(moveLatLng)
     }
     
@@ -509,6 +425,23 @@ export default function MapPage() {
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-500 mx-auto mb-4"></div>
           <p>위치 정보를 가져오는 중...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // 로딩 및 에러 처리
+  if (placesError) {
+    return (
+      <div className="min-h-screen bg-black text-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-red-400 text-lg mb-4">주변 맛집 정보를 불러오는 중 오류가 발생했습니다</div>
+          <button 
+            onClick={() => refresh()}
+            className="bg-pink-500 text-white px-4 py-2 rounded-lg hover:bg-pink-600"
+          >
+            다시 시도
+          </button>
         </div>
       </div>
     )
@@ -565,7 +498,7 @@ export default function MapPage() {
             </button>
             
             <div className="text-sm text-gray-400">
-              {filteredPlaces.length}개의 맛집
+              {placesLoading ? '로딩 중...' : `${filteredPlaces.length}개의 맛집`}
             </div>
           </div>
 
@@ -579,7 +512,7 @@ export default function MapPage() {
                     onChange={(e) => setDistanceFilter(e.target.value)}
                     className="w-full px-3 py-2 bg-gray-800 text-white rounded-lg text-sm"
                   >
-                    <option value="500m">500m</option>
+                    <option value="0.5km">500m</option>
                     <option value="1km">1km</option>
                     <option value="3km">3km</option>
                     <option value="5km">5km</option>
@@ -614,6 +547,7 @@ export default function MapPage() {
                 <div>위치: {pos ? '✅' : '❌'}</div>
                 <div>카카오맵: {isKakaoLoaded ? '✅' : '❌'}</div>
                 <div>API 키: {KAKAO_MAP_API_KEY ? '✅' : '❌'}</div>
+                <div>데이터: {placesLoading ? '로딩 중...' : `${filteredPlaces.length}개`}</div>
               </div>
             </div>
           </div>
@@ -645,14 +579,14 @@ export default function MapPage() {
                     >
                       <div className="relative">
                         <img 
-                          src={place.image} 
-                          alt={place.title}
+                          src={place.images?.[0] || ''} 
+                          alt={place.name}
                           className="w-full h-32 object-cover"
                           onError={(e) => {
                             const target = e.target as HTMLImageElement
                             target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjg4IiBoZWlnaHQ9IjE2MCIgdmlld0JveD0iMCAwIDI4OCAxNjAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyODgiIGhlaWdodD0iMTYwIiBmaWxsPSIjM0Y0QjU5Ii8+CjxwYXRoIGQ9Ik0xNDQgODBDMzIuMzUgODAgMCAxMTIuMzUgMCAxNDRWMTYwSDI4OFYxNDRDMjg4IDExMi4zNSAyNTUuNjUgODAgMTQ0IDgwWiIgZmlsbD0iIzZCNzI4MCIvPgo8cGF0aCBkPSJNMTA4IDEyMEMyOS4wOSAxMjAgMCAxNDkuMDkgMCAxNjhWMTkySDI4OFYxNjhDMjg4IDE0OS4wOSAyNTguOTEgMTIwIDIzMCAxMjBIMTA4WiIgZmlsbD0iIzZCNzI4MCIvPgo8L3N2Zz4K'
-                          }}
-                        />
+                        }}
+                      />
                         <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-30">
                           <div className="w-12 h-12 bg-white bg-opacity-80 rounded-full flex items-center justify-center">
                             <svg className="w-6 h-6 text-black ml-1" fill="currentColor" viewBox="0 0 24 24">
@@ -666,7 +600,7 @@ export default function MapPage() {
                       </div>
                       
                       <div className="p-3">
-                        <h3 className="text-sm font-medium text-white mb-1 truncate">{place.title}</h3>
+                        <h3 className="text-sm font-medium text-white mb-1 truncate">{place.name}</h3>
                         <p className="text-xs text-gray-400 mb-2">{place.youtuberName}</p>
                         <div className="flex items-center gap-2 text-xs text-gray-500 mb-2">
                           <span>{place.viewCount}</span>
@@ -778,7 +712,7 @@ export default function MapPage() {
           </button>
           
           <div className="text-sm text-gray-400">
-            {filteredPlaces.length}개의 맛집
+            {placesLoading ? '로딩 중...' : `${filteredPlaces.length}개의 맛집`}
           </div>
         </div>
 
@@ -794,7 +728,7 @@ export default function MapPage() {
                   onChange={(e) => setDistanceFilter(e.target.value)}
                   className="w-full px-3 py-2 bg-gray-800 text-white rounded-lg text-sm"
                 >
-                  <option value="500m">500m</option>
+                  <option value="0.5km">500m</option>
                   <option value="1km">1km</option>
                   <option value="3km">3km</option>
                   <option value="5km">5km</option>
@@ -851,8 +785,8 @@ export default function MapPage() {
                   >
                     <div className="relative">
                       <img 
-                        src={place.image} 
-                        alt={place.title}
+                        src={place.images?.[0] || ''} 
+                        alt={place.name}
                         className="w-full h-32 object-cover"
                         onError={(e) => {
                           const target = e.target as HTMLImageElement
@@ -874,7 +808,7 @@ export default function MapPage() {
                     </div>
                     
                     <div className="p-3">
-                      <h3 className="text-sm font-medium text-white mb-1 truncate">{place.title}</h3>
+                      <h3 className="text-sm font-medium text-white mb-1 truncate">{place.name}</h3>
                       <p className="text-xs text-gray-400 mb-2">{place.youtuberName}</p>
                       <div className="flex items-center gap-2 text-xs text-gray-500 mb-2">
                         <span>{place.viewCount}</span>
@@ -915,8 +849,8 @@ export default function MapPage() {
             <div className="bg-black w-full max-w-md mx-4 rounded-lg border border-gray-800">
               <div className="relative">
                 <img 
-                  src={selectedPlace.image} 
-                  alt={selectedPlace.title}
+                  src={selectedPlace.images?.[0] || ''} 
+                  alt={selectedPlace.name}
                   className="w-full h-48 object-cover rounded-t-lg"
                   onError={(e) => {
                     const target = e.target as HTMLImageElement
@@ -934,7 +868,7 @@ export default function MapPage() {
               </div>
               
               <div className="p-4">
-                <h2 className="text-lg font-semibold text-white mb-2">{selectedPlace.title}</h2>
+                <h2 className="text-lg font-semibold text-white mb-2">{selectedPlace.name}</h2>
                 <p className="text-sm text-gray-400 mb-3">{selectedPlace.address}</p>
                 
                 <div className="flex items-center gap-2 text-sm text-gray-500 mb-3">
