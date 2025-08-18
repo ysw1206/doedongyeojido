@@ -1,39 +1,139 @@
 {
   "success": true,
   "data": {
-    "id": "place-1",
-    "name": "경복궁",
-    "description": "조선 왕조의 법궁으로 한국의 대표적인 궁궐입니다. 아름다운 전통 건축물과 정원을 감상할 수 있습니다. 근정전, 경회루, 향원정 등 많은 볼거리가 있으며, 수문장 교대식도 관람할 수 있습니다.",
-    "address": "서울특별시 종로구 사직로 161",
-    "category": "관광지",
-    "images": [
-      "https://images.unsplash.com/photo-1578662996442-48f60103fc96",
-      "https://images.unsplash.com/photo-1559827260-dc66d52bef19",
-      "https://images.unsplash.com/photo-1578662996442-48f60103fc96",
-      "https://images.unsplash.com/photo-1559827260-dc66d52bef19"
+    "id": "1",
+    "title": "Since 1939) 끝없는 맛집들로 꽉❕꽉❕ 채워진 노원구 공릉동 👹도깨비시장 (꽈배기, 육개장, 닭발) [ENG]",
+    "description": "#홍석천  #이원일 #노원구 #꽈배기\n\n***광고 절대 아님***\n***모든 음식값 지불***\n\n경춘선 철도를 따라 지켜온 상인들의 손맛\n이젠 ...",
+    "image": "https://img.youtube.com/vi/6e2qb_9w4TE/maxresdefault.jpg",
+    "videoId": "hbFzeLwe7yg",
+    "category": "한식",
+    "youtuberCount": 3,
+    "youtuberName": "스튜디오 수제",
+    "viewCount": "1,584,520회",
+    "uploadTime": "2주 전",
+    "duration": "12:34",
+    "distance": "500m",
+    "location": "공릉동",
+    "address": "노원구 공릉동 일대",
+    "phone": "02-1234-5678",
+    "hours": "매장별 상이",
+    "reservation": "예약 가능",
+    "price": "15,000원 ~ 50,000원",
+    "parking": "매장별 상이",
+    "atmosphere": "데이트, 회식, 혼술, 가족",
+    "mainMenu": "다양한 한식, 일식, 양식",
+    "features": ["현지인 추천", "숨겨진 맛집", "데이트 코스", "가성비 좋음"],
+    "likes": "2.3천개",
+    "comments": "156개",
+    "lat": 37.5172,
+    "lng": 127.0479,
+    "highlights": [
+      {
+        "id": "h1",
+        "name": "동해오징어보쌈",
+        "location": "안양동",
+        "address": "경기 안양시 만안구 장내로139번길 56-12 스타프라자",
+        "timestamp": "11:17",
+        "lat": 33.45296816767421,
+        "lng": 126.57192996936878,
+        "visited": true,
+        "phone": "031-422-0000"
+      },
+      {
+        "id": "h2",
+        "name": "홍두깨손칼국수",
+        "location": "안양동",
+        "address": "경기 안양시 만안구 장내로119번길 18",
+        "timestamp": "22:51",
+        "lat": 33.440263095625525,
+        "lng": 126.56889517853354,
+        "visited": true
+      },
+      {
+        "id": "h3",
+        "name": "얼룩말식당",
+        "location": "안양동",
+        "address": "경기 안양시 만안구 안양로329번길 23 1층",
+        "timestamp": "29:31",
+        "lat": 33.44639926247388,
+        "lng": 126.57041353251486,
+        "visited": true
+      }
     ],
-    "coordinates": {
-      "lat": 37.5788408,
-      "lng": 126.9770184
-    },
-    "rating": 4.5,
-    "reviewCount": 1245,
-    "tags": ["궁궐", "역사", "전통건축", "포토스팟", "수문장교대식", "근정전"],
-    "openingHours": {
-      "monday": "09:00-17:00",
-      "tuesday": "09:00-17:00",
-      "wednesday": "09:00-17:00",
-      "thursday": "09:00-17:00",
-      "friday": "09:00-17:00",
-      "saturday": "09:00-18:00",
-      "sunday": "09:00-18:00"
-    },
-    "contact": {
-      "phone": "02-3700-3900",
-      "website": "http://www.royalpalace.go.kr",
-      "email": "info@royalpalace.go.kr"
-    },
-    "createdAt": "2024-01-15T10:30:00Z",
-    "updatedAt": "2024-03-10T14:20:00Z"
+    "youtubers": [
+      {
+        "id": "y1",
+        "name": "먹방유튜버 김철수",
+        "subscribers": "45.2만명",
+        "avatar": "김",
+        "color": "bg-gradient-to-r from-pink-400 to-pink-500",
+        "review": "\"1인분도 가능해서 혼자 가기 좋아요!\"",
+        "visitTime": "2주 전"
+      },
+      {
+        "id": "y2",
+        "name": "맛집탐방 이영희",
+        "subscribers": "32.1만명",
+        "avatar": "이",
+        "color": "bg-gradient-to-r from-pink-300 to-pink-400",
+        "review": "\"사케 종류가 정말 다양해요!\"",
+        "visitTime": "1개월 전"
+      },
+      {
+        "id": "y3",
+        "name": "혼술맛집 박민수",
+        "subscribers": "18.7만명",
+        "avatar": "박",
+        "color": "bg-gradient-to-r from-pink-500 to-pink-600",
+        "review": "\"혼술하기 정말 좋은 곳이에요!\"",
+        "visitTime": "3개월 전"
+      }
+    ],
+    "relatedPlaces": [
+      {
+        "id": "2",
+        "title": "홍대 숨겨진 이자카야! 현지인만 아는 맛집",
+        "youtuberName": "맛집탐방 이영희",
+        "viewCount": "8.2만회",
+        "uploadTime": "1주 전",
+        "duration": "8:45",
+        "category": "일식",
+        "youtuberCount": 2,
+        "image": "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=320&h=180&fit=crop&crop=center"
+      },
+      {
+        "id": "3",
+        "title": "신촌 혼술 맛집! 대학생들이 추천하는 술집",
+        "youtuberName": "혼술맛집 박민수",
+        "viewCount": "5.7만회",
+        "uploadTime": "3일 전",
+        "duration": "10:15",
+        "category": "술집",
+        "youtuberCount": 4,
+        "image": "https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=320&h=180&fit=crop&crop=center"
+      },
+      {
+        "id": "4",
+        "title": "종로 전통 한식! 한옥에서 즐기는 한정식",
+        "youtuberName": "한식맛집 최지영",
+        "viewCount": "15.3만회",
+        "uploadTime": "1주 전",
+        "duration": "12:30",
+        "category": "한식",
+        "youtuberCount": 7,
+        "image": "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=320&h=180&fit=crop&crop=center"
+      },
+      {
+        "id": "5",
+        "title": "마포구 중식 맛집! 진짜 중국인이 운영하는 짜장면",
+        "youtuberName": "중식맛집 김동현",
+        "viewCount": "9.1만회",
+        "uploadTime": "5일 전",
+        "duration": "6:42",
+        "category": "중식",
+        "youtuberCount": 4,
+        "image": "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=320&h=180&fit=crop&crop=center"
+      }
+    ]
   }
 }

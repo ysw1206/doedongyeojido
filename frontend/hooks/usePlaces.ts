@@ -6,7 +6,8 @@ import {
   fetchPlaceCategories,
   fetchNearbyPlaces,
   fetchRecommendedPlaces,
-  fetchPopularPlaces
+  fetchPopularPlaces,
+  fetchPlaceReviews
 } from '@/services/placeService';
 import type { PlaceListQuery, SearchFilters } from '@/types/api';
 
@@ -188,6 +189,30 @@ export const usePopularPlaces = (category?: string, limit: number = 10) => {
 
   return { 
     places: data || [], 
+    error, 
+    isLoading, 
+    refresh: mutate 
+  };
+};
+
+/**
+ * 장소 리뷰 조회 훅
+ */
+export const usePlaceReviews = (placeId?: string, page: number = 1, limit: number = 10) => {
+  const { data, error, isLoading, mutate } = useSWR(
+    placeId ? `/api/places/${placeId}/reviews?page=${page}&limit=${limit}` : null,
+    () => placeId ? fetchPlaceReviews(placeId, page, limit) : null,
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 5000,
+      errorRetryCount: 3,
+      errorRetryInterval: 5000,
+    }
+  );
+
+  return { 
+    reviews: data?.reviews || [],
+    pagination: data?.pagination,
     error, 
     isLoading, 
     refresh: mutate 
