@@ -1,7 +1,10 @@
 'use client'
 
-import React, { useEffect, useState, useRef, useMemo } from 'react'
+import React, { useEffect, useState, useRef, useMemo, useCallback } from 'react'
 import CategoryFilter from '@/components/filter/CategoryFilter'
+import MapContainer from '@/components/map/MapContainer'
+import PlaceSlider from '@/components/map/PlaceSlider'
+import PlaceDetailModal from '@/components/map/PlaceDetailModal'
 import { useNearbyPlaces } from '@/hooks'
 
 interface Position {
@@ -21,14 +24,10 @@ export default function MapPage() {
   const [distanceFilter, setDistanceFilter] = useState('3km')
   const [youtuberCountFilter, setYoutuberCountFilter] = useState('1')
   const [map, setMap] = useState<any>(null)
-  const [clusterer, setClusterer] = useState<any>(null)
-  const [zoomLevel, setZoomLevel] = useState(3)
   const [selectedPlaceIndex, setSelectedPlaceIndex] = useState(0)
   const [showVideoSlider, setShowVideoSlider] = useState(true)
   const [isKakaoLoaded, setIsKakaoLoaded] = useState(false)
-  const mapRef = useRef<HTMLDivElement>(null)
-  const sliderRef = useRef<HTMLDivElement>(null)
-  const markersRef = useRef<any[]>([])
+  const mapContainerRef = useRef<any>(null)
 
   // 주변 장소 쿼리 파라미터 생성
   const nearbyQuery = useMemo(() => {
@@ -186,219 +185,69 @@ export default function MapPage() {
     }
   }, [])
 
-  // 지도 초기화
-  useEffect(() => {
-    if (!pos || !mapRef.current || !isKakaoLoaded || typeof window === 'undefined') {
-      console.log('지도 초기화 조건 미충족:', { pos, mapRef: mapRef.current, isKakaoLoaded })
-      return
-    }
+  // 지도 준비 핸들러
+  const handleMapReady = useCallback((mapInstance: any) => {
+    setMap(mapInstance)
+    console.log('지도 준비 완료:', mapInstance)
+  }, [])
 
-    if (!window.kakao || !window.kakao.maps || !window.kakao.maps.LatLng) {
-      console.log('카카오맵 API 객체가 준비되지 않았습니다.')
-      return
-    }
+  // 마커 클릭 핸들러 (지도에서 마커를 클릭했을 때)
+  const handleMarkerClick = useCallback((place: any, index: number) => {
+    setSelectedPlaceIndex(index)
+    // 모달은 열지 않고 슬라이더만 해당 위치로 이동
+  }, [])
 
-    console.log('지도 초기화 시작', { pos })
-
-    try {
-      // LatLng 생성 테스트
-      const centerLatLng = new window.kakao.maps.LatLng(pos.lat, pos.lng)
-      console.log('LatLng 생성 성공:', centerLatLng)
-
-      const options = {
-        center: centerLatLng,
-        level: 3 // 레벨 3 (약 500m 반경)
-      }
-
-      const mapInstance = new window.kakao.maps.Map(mapRef.current, options)
-      console.log('지도 인스턴스 생성됨:', mapInstance)
-      
-      // 줌 레벨 변경 이벤트 등록
-      window.kakao.maps.event.addListener(mapInstance, 'zoom_changed', () => {
-        const level = mapInstance.getLevel()
-        console.log('줌 레벨 변경:', level)
-        setZoomLevel(level)
-        
-        // 줌 레벨에 따라 비디오 슬라이더 표시 여부 결정
-        setShowVideoSlider(level <= 5) // 레벨 5 이하에서만 비디오 슬라이더 표시
-      })
-
-      // 클러스터러 초기화 (MarkerClusterer가 있는 경우만)
-      let clustererInstance = null
-      if (window.kakao.maps.MarkerClusterer) {
-        clustererInstance = new window.kakao.maps.MarkerClusterer({
-          map: mapInstance,
-          averageCenter: true,
-          minLevel: 6, // 레벨 6 이상에서 클러스터링
-          disableClickZoom: true,
-          calculator: [10, 30, 50], // 클러스터 단계
-          styles: [
-            {
-              width: '30px',
-              height: '30px',
-              background: 'rgba(236, 72, 153, 0.8)',
-              borderRadius: '15px',
-              color: '#fff',
-              textAlign: 'center',
-              fontWeight: 'bold',
-              lineHeight: '30px'
-            },
-            {
-              width: '40px',
-              height: '40px',
-              background: 'rgba(236, 72, 153, 0.8)',
-              borderRadius: '20px',
-              color: '#fff',
-              textAlign: 'center',
-              fontWeight: 'bold',
-              lineHeight: '40px'
-            },
-            {
-              width: '50px',
-              height: '50px',
-              background: 'rgba(236, 72, 153, 0.8)',
-              borderRadius: '25px',
-              color: '#fff',
-              textAlign: 'center',
-              fontWeight: 'bold',
-              lineHeight: '50px'
-            }
-          ]
-        })
-        console.log('클러스터러 생성됨:', clustererInstance)
-      } else {
-        console.warn('MarkerClusterer를 사용할 수 없습니다. 기본 마커만 사용합니다.')
-      }
-
-      setMap(mapInstance)
-      setClusterer(clustererInstance)
-      
-    } catch (error) {
-      console.error('지도 초기화 중 오류:', error)
-    }
-  }, [pos, isKakaoLoaded])
-
-  // 마커 생성
-  useEffect(() => {
-    if (!map || typeof window === 'undefined' || !window.kakao) return
-
-    // 기존 마커 제거
-    if (clusterer) {
-      clusterer.clear()
-    } else {
-      // 클러스터러가 없는 경우 개별 마커 제거
-      markersRef.current.forEach(marker => marker.setMap(null))
-    }
-
-    const newMarkers: any[] = []
-
-    filteredPlaces.forEach((place, index) => {
-      const markerPosition = new window.kakao.maps.LatLng(place.coordinates.lat, place.coordinates.lng)
-      
-      // 마커 이미지 생성
-      const imageSrc = place.isFavorite 
-        ? 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
-          <svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="16" cy="16" r="16" fill="#ec4899"/>
-            <path d="M16 24.35l-1.45-1.32C9.4 18.36 6 15.28 6 11.5 6 8.42 8.42 6 11.5 6c1.74 0 3.41.81 4.5 2.09C17.59 6.81 19.26 6 21 6c3.08 0 5.5 2.42 5.5 5.5 0 3.78-3.4 6.86-8.55 11.54L16 24.35z" fill="white"/>
-          </svg>
-        `)
-        : 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
-          <svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="16" cy="16" r="16" fill="#6b7280"/>
-            <path d="M16 24.35l-1.45-1.32C9.4 18.36 6 15.28 6 11.5 6 8.42 8.42 6 11.5 6c1.74 0 3.41.81 4.5 2.09C17.59 6.81 19.26 6 21 6c3.08 0 5.5 2.42 5.5 5.5 0 3.78-3.4 6.86-8.55 11.54L16 24.35z" fill="white"/>
-          </svg>
-        `)
-      
-      const imageSize = new window.kakao.maps.Size(32, 32)
-      const imageOption = { offset: new window.kakao.maps.Point(16, 16) }
-      const markerImage = new window.kakao.maps.MarkerImage(imageSrc, imageSize, imageOption)
-      
-      const marker = new window.kakao.maps.Marker({
-        position: markerPosition,
-        image: markerImage,
-        title: place.name
-      })
-
-      // 마커 클릭 이벤트
-      window.kakao.maps.event.addListener(marker, 'click', () => {
-        setSelectedPlace(place)
-        setSelectedPlaceIndex(index)
-        
-        // 슬라이더를 해당 아이템으로 스크롤
-        if (sliderRef.current && showVideoSlider) {
-          const itemWidth = 272 // 각 아이템의 너비
-          const scrollLeft = index * itemWidth - (sliderRef.current.clientWidth / 2) + (itemWidth / 2)
-          sliderRef.current.scrollTo({ left: scrollLeft, behavior: 'smooth' })
-        }
-      })
-
-      newMarkers.push(marker)
-    })
-
-    // 클러스터러가 있으면 클러스터러에 추가, 없으면 개별 마커로 지도에 추가
-    if (clusterer) {
-      clusterer.addMarkers(newMarkers)
-    } else {
-      newMarkers.forEach(marker => marker.setMap(map))
-    }
-    
-    markersRef.current = newMarkers
-  }, [map, clusterer, filteredPlaces, showVideoSlider])
-
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault()
-    console.log('검색:', searchQuery)
-  }
-
-  const handleVoiceSearch = () => {
-    console.log('음성 검색')
-  }
-
-  const handlePlaceClick = (place: any) => {
-    setSelectedPlace(place)
-    // 지도에서 해당 위치로 이동
-    if (map && typeof window !== 'undefined' && window.kakao && window.kakao.maps) {
+  // 상점 클릭 핸들러 (슬라이더에서 상점을 클릭했을 때)
+  const handlePlaceClick = (place: any, index: number) => {
+    setSelectedPlaceIndex(index)
+    // 지도 중심을 해당 위치로 이동
+    if (map && place.coordinates && typeof window !== 'undefined' && window.kakao && window.kakao.maps) {
       const moveLatLng = new window.kakao.maps.LatLng(place.coordinates.lat, place.coordinates.lng)
       map.panTo(moveLatLng)
-      map.setLevel(3)
     }
   }
 
-  const handleClosePlaceDetail = () => {
-    setSelectedPlace(null)
-  }
-
+  // 즐겨찾기 토글 핸들러
   const handleFavoriteToggle = (placeId: string) => {
     console.log('찜 토글:', placeId)
     // 실제로는 API 호출로 상태 업데이트
   }
 
+  // 경로 안내 핸들러
   const handleGetDirections = (place: any) => {
     const url = `https://map.kakao.com/link/to/${place.name},${place.coordinates.lat},${place.coordinates.lng}`
     window.open(url, '_blank')
   }
 
+  // 상점 상세 정보 모달 열기
+  const handlePlaceDetail = (place: any) => {
+    setSelectedPlace(place)
+  }
+
+  // 상점 상세 정보 모달 닫기
+  const handleClosePlaceDetail = () => {
+    setSelectedPlace(null)
+  }
+
+  // 슬라이더 닫기
+  const handleCloseSlider = () => {
+    setShowVideoSlider(false)
+  }
+
+  // 검색 핸들러
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault()
+    console.log('검색:', searchQuery)
+  }
+
+  // 음성 검색 핸들러  
+  const handleVoiceSearch = () => {
+    console.log('음성 검색')
+  }
+
   // 슬라이더 스크롤 이벤트 처리
   const handleSliderScroll = () => {
-    if (!sliderRef.current || !showVideoSlider) return
-    
-    const slider = sliderRef.current
-    const itemWidth = 272 // 각 아이템의 너비 (w-64 + gap-4)
-    const scrollLeft = slider.scrollLeft
-    const centerPosition = scrollLeft + (slider.clientWidth / 2)
-    const newIndex = Math.round(centerPosition / itemWidth)
-    
-    if (newIndex !== selectedPlaceIndex && newIndex >= 0 && newIndex < filteredPlaces.length) {
-      setSelectedPlaceIndex(newIndex)
-      
-      // 선택된 장소로 지도 중심 이동
-      const selectedPlace = filteredPlaces[newIndex]
-      if (map && selectedPlace && typeof window !== 'undefined' && window.kakao && window.kakao.maps) {
-        const moveLatLng = new window.kakao.maps.LatLng(selectedPlace.coordinates.lat, selectedPlace.coordinates.lng)
-        map.panTo(moveLatLng)
-      }
-    }
+    // 슬라이더 스크롤 로직은 여기에 구현 가능
   }
 
   // 슬라이더 아이템 클릭 핸들러
@@ -409,13 +258,6 @@ export default function MapPage() {
     if (map && typeof window !== 'undefined' && window.kakao && window.kakao.maps) {
       const moveLatLng = new window.kakao.maps.LatLng(place.coordinates.lat, place.coordinates.lng)
       map.panTo(moveLatLng)
-    }
-    
-    // 슬라이더를 해당 아이템으로 스크롤
-    if (sliderRef.current) {
-      const itemWidth = 272
-      const scrollLeft = index * itemWidth - (sliderRef.current.clientWidth / 2) + (itemWidth / 2)
-      sliderRef.current.scrollTo({ left: scrollLeft, behavior: 'smooth' })
     }
   }
 
@@ -731,242 +573,64 @@ export default function MapPage() {
         )}
       </div>
 
-      {/* 지도 영역 */}
-      <div className="relative flex-1">
-        <div
-          ref={mapRef}
-          className="absolute inset-0 w-full h-full"
-        />
+      {/* 지도 컨테이너 */}
+      <MapContainer
+        pos={pos}
+        places={filteredPlaces}
+        selectedPlace={selectedPlace}
+        selectedPlaceIndex={selectedPlaceIndex}
+        isKakaoLoaded={isKakaoLoaded}
+        onMapReady={handleMapReady}
+        onMarkerClick={handleMarkerClick}
+        showVideoSlider={showVideoSlider}
+      />
 
-        {/* 로딩 오버레이 */}
-        {(!isKakaoLoaded || placesLoading) && (
-          <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center z-10">
-            <div className="text-white text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto mb-2"></div>
-              <p>{!isKakaoLoaded ? '지도를 불러오는 중...' : '맛집을 찾는 중...'}</p>
-            </div>
+      {/* 로딩 오버레이 */}
+      {(!isKakaoLoaded || placesLoading) && (
+        <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center z-10">
+          <div className="text-white text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto mb-2"></div>
+            <p>{!isKakaoLoaded ? '지도를 불러오는 중...' : '맛집을 찾는 중...'}</p>
           </div>
-        )}
-
-        {/* 에러 오버레이 */}
-        {placesError && (
-          <div className="absolute top-4 left-4 right-4 bg-red-500 text-white p-3 rounded-lg z-20">
-            <div className="flex items-center">
-              <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd"></path>
-              </svg>
-              <span>데이터를 불러오는 중 오류가 발생했습니다.</span>
-              <button
-                onClick={() => refresh()}
-                className="ml-auto underline hover:no-underline"
-              >
-                다시 시도
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* 줌 컨트롤 */}
-        <div className="absolute top-4 right-4 bg-white rounded-lg shadow-lg overflow-hidden z-20">
-          <button
-            onClick={() => {
-              if (map) {
-                const level = map.getLevel()
-                map.setLevel(level - 1)
-                setZoomLevel(level - 1)
-              }
-            }}
-            className="block w-10 h-10 flex items-center justify-center text-gray-700 hover:bg-gray-100 border-b border-gray-200"
-          >
-            +
-          </button>
-          <button
-            onClick={() => {
-              if (map) {
-                const level = map.getLevel()
-                map.setLevel(level + 1)
-                setZoomLevel(level + 1)
-              }
-            }}
-            className="block w-10 h-10 flex items-center justify-center text-gray-700 hover:bg-gray-100"
-          >
-            −
-          </button>
         </div>
+      )}
 
-        {/* 현재 위치 버튼 */}
-        <button
-          onClick={() => {
-            if (navigator.geolocation) {
-              navigator.geolocation.getCurrentPosition((position) => {
-                const newPos = {
-                  lat: position.coords.latitude,
-                  lng: position.coords.longitude
-                }
-                setPos(newPos)
-                if (map) {
-                  const moveLatLon = new kakao.maps.LatLng(newPos.lat, newPos.lng)
-                  map.setCenter(moveLatLon)
-                }
-              })
-            }
-          }}
-          className="absolute bottom-32 right-4 w-12 h-12 bg-white rounded-full shadow-lg flex items-center justify-center text-gray-700 hover:bg-gray-100 z-20"
-        >
-          <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd"></path>
-          </svg>
-        </button>
-      </div>
-
-      {/* 하단 상점 목록 슬라이더 */}
-      {showVideoSlider && nearbyPlaces && nearbyPlaces.length > 0 && (
-        <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-90 text-white p-4 z-30">
-          <div className="flex justify-between items-center mb-3">
-            <h3 className="text-lg font-semibold">주변 맛집 ({nearbyPlaces.length})</h3>
+      {/* 에러 오버레이 */}
+      {placesError && (
+        <div className="absolute top-4 left-4 right-4 bg-red-500 text-white p-3 rounded-lg z-20">
+          <div className="flex items-center">
+            <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd"></path>
+            </svg>
+            <span>데이터를 불러오는 중 오류가 발생했습니다.</span>
             <button
-              onClick={() => setShowVideoSlider(false)}
-              className="text-gray-400 hover:text-white"
+              onClick={() => refresh()}
+              className="ml-auto underline hover:no-underline"
             >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
-              </svg>
+              다시 시도
             </button>
           </div>
-          
-          <div
-            ref={sliderRef}
-            className="flex space-x-4 overflow-x-auto scrollbar-hide pb-2"
-            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-          >
-            {nearbyPlaces.map((place, index) => (
-              <div
-                key={place.id}
-                onClick={() => {
-                  setSelectedPlace(place)
-                  setSelectedPlaceIndex(index)
-                  if (map && place.coordinates) {
-                    const moveLatLon = new kakao.maps.LatLng(place.coordinates.lat, place.coordinates.lng)
-                    map.setCenter(moveLatLon)
-                  }
-                }}
-                className={`flex-shrink-0 w-72 bg-gray-800 rounded-lg overflow-hidden cursor-pointer transition-all duration-200 ${
-                  selectedPlace?.id === place.id 
-                    ? 'ring-2 ring-blue-400 border-2 border-blue-400' 
-                    : 'hover:bg-gray-700'
-                }`}
-              >
-                <div className="relative">
-                  <img
-                    src={place.images?.[0] || '/placeholder-image.jpg'}
-                    alt={place.name}
-                    className="w-full h-32 object-cover"
-                    onError={(e) => {
-                      e.currentTarget.src = '/placeholder-image.jpg'
-                    }}
-                  />
-                  {/* 플레이 버튼 오버레이 제거됨 */}
-                </div>
-                <div className="p-3">
-                  <h4 className="font-medium text-sm mb-1 line-clamp-2">{place.name}</h4>
-                  <p className="text-xs text-gray-400 mb-2 line-clamp-1">{place.category}</p>
-                  <div className="flex items-center justify-between text-xs text-gray-500">
-                    <span>⭐ {place.rating}</span>
-                    <span>{place.tags?.length || 0}명 유튜버</span>
-                  </div>
-                  <div className="flex items-center justify-between mt-2">
-                    <span className="text-xs text-gray-400">{place.distance || '거리 정보 없음'}</span>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        // 즐겨찾기 토글 로직
-                      }}
-                      className="p-1 rounded-full hover:bg-gray-700 transition-colors"
-                    >
-                      <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-                      </svg>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
         </div>
       )}
 
-      {/* 선택된 장소 상세 정보 모달 */}
-      {selectedPlace && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-end justify-center z-50">
-          <div className="bg-white w-full max-w-md max-h-[80vh] rounded-t-xl overflow-hidden">
-            <div className="relative">
-              <img
-                src={selectedPlace.images?.[0] || '/placeholder-image.jpg'}
-                alt={selectedPlace.name}
-                className="w-full h-48 object-cover"
-                onError={(e) => {
-                  e.currentTarget.src = '/placeholder-image.jpg'
-                }}
-              />
-              <button
-                onClick={() => setSelectedPlace(null)}
-                className="absolute top-4 right-4 w-8 h-8 bg-black bg-opacity-50 rounded-full flex items-center justify-center text-white hover:bg-opacity-70"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
-                </svg>
-              </button>
-            </div>
-            
-            <div className="p-6">
-              <h2 className="text-xl font-bold mb-2">{selectedPlace.name}</h2>
-              <p className="text-gray-600 mb-4">{selectedPlace.description}</p>
-              
-              <div className="space-y-3 mb-6">
-                <div className="flex items-center text-sm text-gray-600">
-                  <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd"></path>
-                  </svg>
-                  {selectedPlace.address}
-                </div>
-                <div className="flex items-center text-sm text-gray-600">
-                  <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
-                  </svg>
-                  평점 {selectedPlace.rating} ({selectedPlace.reviewCount}개 리뷰)
-                </div>
-                <div className="flex items-center text-sm text-gray-600">
-                  <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd"></path>
-                  </svg>
-                  {selectedPlace.tags?.length || 0}명의 유튜버가 방문
-                </div>
-              </div>
-
-              <div className="flex space-x-3">
-                <button
-                  onClick={() => {
-                    if (selectedPlace.videoId) {
-                      window.open(`https://youtube.com/watch?v=${selectedPlace.videoId}`, '_blank')
-                    }
-                  }}
-                  className="flex-1 bg-red-500 text-white py-2 px-4 rounded-lg font-medium hover:bg-red-600 transition-all"
-                >
-                  영상 보기
-                </button>
-                <button
-                  onClick={() => {
-                    // 경로 안내 로직
-                  }}
-                  className="flex-1 bg-gradient-to-r from-blue-400 to-blue-500 text-white py-2 px-4 rounded-lg font-medium hover:from-blue-500 hover:to-blue-600 transition-all"
-                >
-                  경로 안내
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+      {/* 하단 상점 목록 슬라이더 */}
+      {showVideoSlider && filteredPlaces && filteredPlaces.length > 0 && (
+        <PlaceSlider
+          places={filteredPlaces}
+          selectedPlaceIndex={selectedPlaceIndex}
+          onPlaceClick={handlePlaceClick}
+          onPlaceDetail={handlePlaceDetail}
+          onFavoriteToggle={handleFavoriteToggle}
+          onClose={handleCloseSlider}
+        />
       )}
+
+      {/* 상점 상세 정보 모달 */}
+      <PlaceDetailModal
+        place={selectedPlace}
+        onClose={handleClosePlaceDetail}
+        onGetDirections={handleGetDirections}
+      />
     </>
   )
 }
