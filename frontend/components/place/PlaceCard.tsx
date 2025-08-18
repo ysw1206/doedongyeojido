@@ -38,6 +38,19 @@ export default function PlaceCard({
   const [favorites, setFavorites] = useLocalStorage<string[]>('favorites', []);
   const [visited, setVisited] = useLocalStorage<string[]>('visited', []);
 
+  // 디버깅을 위한 로그 추가
+  console.log('PlaceCard props:', {
+    id,
+    title,
+    image,
+    videoId,
+    category,
+    youtuberName,
+    viewCount,
+    uploadTime,
+    duration
+  });
+
   const isFavorited = favorites.includes(id);
   const isVisited = visited.includes(id);
 
@@ -61,16 +74,31 @@ export default function PlaceCard({
     <Link href={`/place/${id}`} className="block">
       <div className="bg-gray-900 rounded-lg overflow-hidden cursor-pointer hover:bg-gray-800 transition-colors">
         <div className="relative">
-          <img src={image} alt={title} className="w-full aspect-video object-cover" />
-          {videoId && (
-            <div className="absolute inset-0 bg-black bg-opacity-20 flex items-center justify-center">
-              <div className="w-16 h-16 bg-gradient-to-r from-pink-400 to-pink-500 rounded-full flex items-center justify-center shadow-lg">
-                <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M8 5v14l11-7z"/>
-                </svg>
-              </div>
+          <img 
+            src={image} 
+            alt={title} 
+            className="w-full aspect-video object-cover"
+            onLoad={() => console.log('✅ Image loaded successfully:', image)}
+            onError={(e) => {
+              console.error('❌ Image failed to load:', image);
+              console.error('Error event:', e);
+              // fallback 이미지 또는 기본 배경색으로 대체
+              e.currentTarget.style.display = 'none';
+            }}
+          />
+          {/* 이미지 로드 실패 시 대체 요소 */}
+          <div 
+            className="absolute inset-0 bg-gray-800 flex items-center justify-center text-gray-400"
+            style={{ display: image ? 'none' : 'flex' }}
+          >
+            <div className="text-center">
+              <div className="text-4xl mb-2">🎬</div>
+              <div className="text-sm">이미지 로드 중...</div>
             </div>
-          )}
+          </div>
+          
+          {/* 플레이 버튼 오버레이 제거 - 이미지가 잘 보이도록 */}
+          
           {duration && (
             <div className="absolute bottom-2 right-2 bg-black bg-opacity-80 text-white text-xs px-1 py-0.5 rounded">
               {duration}

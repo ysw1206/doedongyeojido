@@ -3,107 +3,282 @@
   "data": [
     {
       "id": "place-1",
-      "name": "경복궁",
-      "description": "조선 왕조의 법궁으로 한국의 대표적인 궁궐입니다. 아름다운 전통 건축물과 정원을 감상할 수 있습니다.",
-      "address": "서울특별시 종로구 사직로 161",
-      "category": "관광지",
-      "images": [
-        "https://images.unsplash.com/photo-1578662996442-48f60103fc96",
-        "https://images.unsplash.com/photo-1559827260-dc66d52bef19"
-      ],
+      "name": "Since 1939) 끝없는 맛집들로 꽉❕꽉❕ 채워진 노원구 공릉동 👹도깨비시장",
+      "description": "#홍석천 #이원일 #노원구 #꽈배기\n\n***광고 절대 아님***\n***모든 음식값 지불***\n\n경춘선 철도를 따라 지켜온 상인들의 손맛\n이젠 ...",
+      "address": "서울특별시 노원구 공릉동",
+      "category": "전통시장",
+      "images": ["https://img.youtube.com/vi/6e2qb_9w4TE/maxresdefault.jpg"],
       "coordinates": {
-        "lat": 37.5788408,
-        "lng": 126.9770184
+        "lat": 37.6258,
+        "lng": 127.0746
       },
       "rating": 4.5,
       "reviewCount": 1245,
-      "tags": ["궁궐", "역사", "전통건축", "포토스팟"],
+      "tags": ["전통시장", "꽈배기", "육개장", "닭발"],
+      "videoId": "6e2qb_9w4TE",
+      "youtuberName": "홍석천이원일",
+      "viewCount": "조회수 503,204회",
+      "uploadTime": "3달 전",
+      "duration": "28:39",
       "openingHours": {
-        "monday": "09:00-17:00",
-        "tuesday": "09:00-17:00",
-        "wednesday": "09:00-17:00",
-        "thursday": "09:00-17:00",
-        "friday": "09:00-17:00",
-        "saturday": "09:00-18:00",
-        "sunday": "09:00-18:00"
+        "monday": "06:00-20:00",
+        "tuesday": "06:00-20:00",
+        "wednesday": "06:00-20:00",
+        "thursday": "06:00-20:00",
+        "friday": "06:00-20:00",
+        "saturday": "06:00-20:00",
+        "sunday": "06:00-19:00"
       },
       "contact": {
-        "phone": "02-3700-3900",
-        "website": "http://www.royalpalace.go.kr"
+        "phone": "02-949-8834"
       },
       "createdAt": "2024-01-15T10:30:00Z",
       "updatedAt": "2024-03-10T14:20:00Z"
     },
     {
       "id": "place-2",
-      "name": "남산타워",
-      "description": "서울의 랜드마크이자 사랑의 명소로 유명한 타워입니다. 서울 전경을 한눈에 볼 수 있는 전망대가 있습니다.",
-      "address": "서울특별시 용산구 남산공원길 105",
-      "category": "관광지",
-      "images": [
-        "https://images.unsplash.com/photo-1558991047-b93d1d9397c1",
-        "https://images.unsplash.com/photo-1578662996442-48f60103fc96"
-      ],
+      "name": "충격받을 준비 되셨나요? 살다 살다 이런 뷔페는 처음입니다.",
+      "description": "훈태의 일기📜\n\n이 세상엔 정말 미친 무한리필들이 많다.\n나는 그 중에 한 곳..\n호남 1짱 돈까스뷔페\n돈페라는 곳을 다녀왔다.\n돈페.. 역시나...",
+      "address": "광주광역시 서구",
+      "category": "뷔페",
+      "images": ["https://img.youtube.com/vi/GzhIY4TgI3g/maxresdefault.jpg"],
       "coordinates": {
-        "lat": 37.5511694,
-        "lng": 126.9882266
+        "lat": 35.1595,
+        "lng": 126.8526
       },
-      "rating": 4.3,
+      "rating": 4.7,
       "reviewCount": 892,
-      "tags": ["전망대", "야경", "데이트코스", "랜드마크"],
+      "tags": ["돈까스", "뷔페", "무한리필"],
+      "videoId": "GzhIY4TgI3g",
+      "youtuberName": "섬마을훈태TV",
+      "viewCount": "조회수 236,954회",
+      "uploadTime": "1주 전",
+      "duration": "11:26",
       "openingHours": {
-        "monday": "10:00-23:00",
-        "tuesday": "10:00-23:00",
-        "wednesday": "10:00-23:00",
-        "thursday": "10:00-23:00",
-        "friday": "10:00-24:00",
-        "saturday": "10:00-24:00",
-        "sunday": "10:00-23:00"
+        "monday": "11:00-21:00",
+        "tuesday": "11:00-21:00",
+        "wednesday": "11:00-21:00",
+        "thursday": "11:00-21:00",
+        "friday": "11:00-21:00",
+        "saturday": "11:00-21:00",
+        "sunday": "11:00-20:00"
       },
       "contact": {
-        "phone": "02-3455-9277",
-        "website": "http://www.seoultower.co.kr"
+        "phone": "062-123-4567"
       },
       "createdAt": "2024-01-20T09:15:00Z",
       "updatedAt": "2024-03-15T16:45:00Z"
     },
     {
       "id": "place-3",
-      "name": "명동 교자",
-      "description": "50년 전통의 만두 전문점으로 명동의 대표 맛집입니다. 쫄깃한 피와 풍부한 속재료가 일품입니다.",
-      "address": "서울특별시 중구 명동10길 29",
-      "category": "맛집",
-      "images": [
-        "https://images.unsplash.com/photo-1563379091339-03246963d96c",
-        "https://images.unsplash.com/photo-1548943487-a2e4e43b4853"
-      ],
+      "name": "수원 광교 맛집 BEST 12",
+      "description": "수원 광교에 왔어요! 광교는 호수공원도 있고 카페거리도 있어서 이쪽으로 놀러오기도 참으로 좋은 동네같았어요! 특히 신도시이다보니 거리도 깨끗하고...",
+      "address": "경기도 수원시 영통구 광교신도시",
+      "category": "맛집투어",
+      "images": ["https://img.youtube.com/vi/_cmrFEFxV-8/maxresdefault.jpg"],
       "coordinates": {
-        "lat": 37.5635158,
-        "lng": 126.9823048
+        "lat": 37.2872,
+        "lng": 127.0448
       },
       "rating": 4.2,
       "reviewCount": 567,
-      "tags": ["만두", "전통맛집", "명동", "점심식사"],
+      "tags": ["광교", "맛집투어", "신도시"],
+      "videoId": "_cmrFEFxV-8",
+      "youtuberName": "하이갱스 higaengs",
+      "viewCount": "조회수 111,282회",
+      "uploadTime": "1달 전",
+      "duration": "26:16",
       "openingHours": {
-        "monday": "10:30-22:00",
-        "tuesday": "10:30-22:00",
-        "wednesday": "10:30-22:00",
-        "thursday": "10:30-22:00",
-        "friday": "10:30-22:00",
-        "saturday": "10:30-22:00",
-        "sunday": "10:30-21:00"
+        "monday": "10:00-22:00",
+        "tuesday": "10:00-22:00",
+        "wednesday": "10:00-22:00",
+        "thursday": "10:00-22:00",
+        "friday": "10:00-22:00",
+        "saturday": "10:00-22:00",
+        "sunday": "10:00-21:00"
       },
       "contact": {
-        "phone": "02-776-5348"
+        "phone": "031-123-4567"
       },
       "createdAt": "2024-02-01T12:00:00Z",
       "updatedAt": "2024-03-05T11:30:00Z"
+    },
+    {
+      "id": "place-4",
+      "name": "[sub] 성시경의 먹을텐데 l 부산 중앙역 중앙곰탕",
+      "description": "[중앙곰탕]\n부산 중구 충장대로9번길 9 동영빌딩지하 (중앙동4가 88-18)\n\n#양수백 #곰탕 #양곰탕\n#먹방 #맛집추천 #맛집탐방...",
+      "address": "부산광역시 중구 중앙동4가 88-18",
+      "category": "한식",
+      "images": ["https://img.youtube.com/vi/k9pte2X-4NA/maxresdefault.jpg"],
+      "coordinates": {
+        "lat": 35.0978,
+        "lng": 129.0320
+      },
+      "rating": 4.6,
+      "reviewCount": 423,
+      "tags": ["곰탕", "양곰탕", "부산맛집"],
+      "videoId": "k9pte2X-4NA",
+      "youtuberName": "성시경 SUNG SI KYUNG",
+      "viewCount": "조회수 600,836회",
+      "uploadTime": "3주 전",
+      "duration": "21:28",
+      "openingHours": {
+        "monday": "07:00-21:00",
+        "tuesday": "07:00-21:00",
+        "wednesday": "07:00-21:00",
+        "thursday": "07:00-21:00",
+        "friday": "07:00-21:00",
+        "saturday": "07:00-21:00",
+        "sunday": "07:00-20:00"
+      },
+      "contact": {
+        "phone": "051-123-4567"
+      },
+      "createdAt": "2024-02-10T08:00:00Z",
+      "updatedAt": "2024-03-12T10:15:00Z"
+    },
+    {
+      "id": "place-5",
+      "name": "광주 현지인도 놀라요. 도대체 여길 어떻게 알고 다녀왔는지",
+      "description": "쿠팡 파트너스 활동의 일환으로 이에 따른 일정액의 수수료를 제공받습니다\n👉https://link.coupang.com/a/cAviOI\n둘시네...",
+      "address": "광주광역시 동구",
+      "category": "일식",
+      "images": ["https://img.youtube.com/vi/28nYi3wP60s/maxresdefault.jpg"],
+      "coordinates": {
+        "lat": 35.1468,
+        "lng": 126.9222
+      },
+      "rating": 4.4,
+      "reviewCount": 312,
+      "tags": ["일식", "광주맛집", "현지맛집"],
+      "videoId": "28nYi3wP60s",
+      "youtuberName": "둘시네아 dulcinea",
+      "viewCount": "조회수 97,327회",
+      "uploadTime": "6일 전",
+      "duration": "42:18",
+      "openingHours": {
+        "monday": "11:30-21:00",
+        "tuesday": "11:30-21:00",
+        "wednesday": "11:30-21:00",
+        "thursday": "11:30-21:00",
+        "friday": "11:30-21:00",
+        "saturday": "11:30-21:00",
+        "sunday": "휴무"
+      },
+      "contact": {
+        "phone": "062-234-5678"
+      },
+      "createdAt": "2024-02-15T14:30:00Z",
+      "updatedAt": "2024-03-18T16:20:00Z"
+    },
+    {
+      "id": "place-6",
+      "name": "매일 덥다고 하는 일본인아내 대구 데려갔다가 맛집으로 화풀린 날",
+      "description": "요즘 에어컨 켜도 요리하거나 세라를 안으면 바로 더워지더라고요🥹\n계속 덥다고 했더니 대구를 데려가는 남편에게\n짜증이 날 뻔했지만(?) 다행히 남...",
+      "address": "대구광역시 중구",
+      "category": "한식",
+      "images": ["https://img.youtube.com/vi/Lng9Vm56Fzs/maxresdefault.jpg"],
+      "coordinates": {
+        "lat": 35.8714,
+        "lng": 128.6014
+      },
+      "rating": 4.3,
+      "reviewCount": 678,
+      "tags": ["한식", "대구맛집", "가족외식"],
+      "videoId": "Lng9Vm56Fzs",
+      "youtuberName": "네루짱NERU",
+      "viewCount": "조회수 147,590회",
+      "uploadTime": "1일 전",
+      "duration": "19:23",
+      "openingHours": {
+        "monday": "11:00-21:00",
+        "tuesday": "11:00-21:00",
+        "wednesday": "11:00-21:00",
+        "thursday": "11:00-21:00",
+        "friday": "11:00-21:00",
+        "saturday": "11:00-21:00",
+        "sunday": "11:00-20:00"
+      },
+      "contact": {
+        "phone": "053-345-6789"
+      },
+      "createdAt": "2024-02-20T11:00:00Z",
+      "updatedAt": "2024-03-20T13:45:00Z"
+    },
+    {
+      "id": "place-7",
+      "name": "(ENG) 용산에서 제대로 된 세끼 추천해드립니다ㅣ명수세끼 용산맛집",
+      "description": "명-하!\n\n깨스야 다음은 어느 동네\n세끼가 좋을까?\n\n*00:00 용산 세끼*\n\n01:53 오제제🐷\n서울 용산구 한강대로 100 지하1층 B10...",
+      "address": "서울특별시 용산구 한강대로 100",
+      "category": "맛집투어",
+      "images": ["https://img.youtube.com/vi/xMgMpVIl1Rc/maxresdefault.jpg"],
+      "coordinates": {
+        "lat": 37.5326,
+        "lng": 126.9652
+      },
+      "rating": 4.8,
+      "reviewCount": 1024,
+      "tags": ["용산맛집", "세끼", "맛집투어"],
+      "videoId": "xMgMpVIl1Rc",
+      "youtuberName": "할명수",
+      "viewCount": "조회수 1,081,001회",
+      "uploadTime": "9달 전",
+      "duration": "17:25",
+      "openingHours": {
+        "monday": "11:00-22:00",
+        "tuesday": "11:00-22:00",
+        "wednesday": "11:00-22:00",
+        "thursday": "11:00-22:00",
+        "friday": "11:00-23:00",
+        "saturday": "11:00-23:00",
+        "sunday": "11:00-21:00"
+      },
+      "contact": {
+        "phone": "02-456-7890"
+      },
+      "createdAt": "2024-01-25T09:30:00Z",
+      "updatedAt": "2024-03-22T15:10:00Z"
+    },
+    {
+      "id": "place-8",
+      "name": "야장하면 떠오르는 을지로 노포에서 1끼 8메뉴 먹고 온 이장우",
+      "description": "부여식품 삼촌세트 이벤트 (8월 3일까지)\n👉🏼 https://bit.ly/4lULPKo\n\n#을지로맛집 #맛집추천 #이장우...",
+      "address": "서울특별시 중구 을지로",
+      "category": "한식",
+      "images": ["https://img.youtube.com/vi/HSqpNLfdUJs/maxresdefault.jpg"],
+      "coordinates": {
+        "lat": 37.5665,
+        "lng": 126.9913
+      },
+      "rating": 4.5,
+      "reviewCount": 756,
+      "tags": ["을지로", "막창", "야장", "노포"],
+      "videoId": "HSqpNLfdUJs",
+      "youtuberName": "살찐삼촌 이장우",
+      "viewCount": "조회수 106,233회",
+      "uploadTime": "3일 전",
+      "duration": "10:58",
+      "openingHours": {
+        "monday": "17:00-24:00",
+        "tuesday": "17:00-24:00",
+        "wednesday": "17:00-24:00",
+        "thursday": "17:00-24:00",
+        "friday": "17:00-02:00",
+        "saturday": "17:00-02:00",
+        "sunday": "17:00-23:00"
+      },
+      "contact": {
+        "phone": "02-567-8901"
+      },
+      "createdAt": "2024-03-01T16:00:00Z",
+      "updatedAt": "2024-03-25T18:30:00Z"
     }
   ],
   "pagination": {
     "page": 1,
-    "limit": 10,
-    "total": 3,
+    "limit": 20,
+    "total": 8,
     "totalPages": 1
-  }
+  },
+  "message": "장소 목록을 성공적으로 조회했습니다."
 }
