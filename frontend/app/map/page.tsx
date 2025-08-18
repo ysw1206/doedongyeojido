@@ -211,30 +211,36 @@ export default function MapPage() {
   }, [])
 
   // 상점 클릭 핸들러 (슬라이더에서 상점을 클릭했을 때)
-  const handlePlaceClick = (place: any, index: number) => {
+  const handlePlaceClick = useCallback((place: any, index: number) => {
+    console.log('🎯 상점 클릭:', place.name, index)
     setSelectedPlaceIndex(index)
+    
     // 지도 중심을 해당 위치로 이동
     if (map && place.coordinates && typeof window !== 'undefined' && window.kakao && window.kakao.maps) {
+      console.log('🗺️ 지도 중심 이동:', place.coordinates)
       const moveLatLng = new window.kakao.maps.LatLng(place.coordinates.lat, place.coordinates.lng)
       map.panTo(moveLatLng)
+    } else {
+      console.log('❌ 지도 이동 실패:', { map: !!map, coordinates: place.coordinates })
     }
-  }
+  }, [map])
+
+  // 상점 상세 정보 모달 열기
+  const handlePlaceDetail = useCallback((place: any) => {
+    console.log('📋 상세 정보 열기:', place.name)
+    setSelectedPlace(place)
+  }, [])
 
   // 즐겨찾기 토글 핸들러
-  const handleFavoriteToggle = (placeId: string) => {
-    console.log('찜 토글:', placeId)
+  const handleFavoriteToggle = useCallback((placeId: string) => {
+    console.log('❤️ 찜 토글:', placeId)
     // 실제로는 API 호출로 상태 업데이트
-  }
+  }, [])
 
   // 경로 안내 핸들러
   const handleGetDirections = (place: any) => {
     const url = `https://map.kakao.com/link/to/${place.name},${place.coordinates.lat},${place.coordinates.lng}`
     window.open(url, '_blank')
-  }
-
-  // 상점 상세 정보 모달 열기
-  const handlePlaceDetail = (place: any) => {
-    setSelectedPlace(place)
   }
 
   // 상점 상세 정보 모달 닫기
@@ -409,81 +415,114 @@ export default function MapPage() {
 
           {/* 하단 비디오 슬라이더 */}
           {filteredPlaces.length > 0 && ( 
-            <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-95 backdrop-blur-sm border-t border-gray-700 z-10">
-              <div className="p-4">
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-lg font-semibold text-white">주변 맛집 영상</h2>
-                  <span className="text-sm text-gray-400">{filteredPlaces.length}개</span>
-                </div>
-                <div 
-                  ref={sliderRef}
-                  className="flex gap-4 overflow-x-auto scrollbar-hide pb-2"
-                  style={{ scrollSnapType: 'x mandatory' }}
-                  onScroll={handleSliderScroll}
+            <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-90 text-white p-4 z-30">
+              <div className="flex justify-between items-center mb-3">
+                <h3 className="text-lg font-semibold">주변 맛집 ({filteredPlaces.length})</h3>
+                <button
+                  onClick={handleCloseSlider}
+                  className="text-gray-400 hover:text-white transition-colors"
                 >
-                
-                  {filteredPlaces.map((place, index) => (
-                    <div 
-                      key={place.id}
-                      onClick={() => handleSliderItemClick(place, index)}
-                      className={`flex-shrink-0 w-64 bg-gray-900 rounded-lg overflow-hidden cursor-pointer transition-all duration-300 ${
-                        index === selectedPlaceIndex 
-                          ? 'ring-4 ring-pink-500 shadow-lg shadow-pink-500/50 scale-105' 
-                          : 'hover:bg-gray-800'
-                      }`}
-                      style={{ scrollSnapAlign: 'center' }}
-                    >
-                      {/* 부모 div 안에서 이미지 + 하단 정보 두 덩어리 모두 감싸기 */}
-                      <div className="relative">
-                        <img 
-                          src={place.images?.[0] || ''} 
-                          alt={place.name}
-                          className="w-full h-32 object-cover"
-                          onError={(e) => {
-                            const target = e.target as HTMLImageElement
-                            target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjg4IiBoZWlnaHQ9IjE2MCIgdmlld0JveD0iMCAwIDI4OCAxNjAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyODgiIGhlaWdodD0iMTYwIiBmaWxsPSIjM0Y0QjU5Ii8+CjxwYXRoIGQ9Ik0xNDQgODBDMzIuMzUgODAgMCAxMTIuMzUgMCAxNDRWMTYwSDI4OFYxNDRDMjg4IDExMi4zNSAyNTUuNjUgODAgMTQ0IDgwWiIgZmlsbD0iIzZCNzI4MCIvPgo8cGF0aCBkPSJNMTA4IDEyMEMyOS4wOSAxMjAgMCAxNDkuMDkgMCAxNjhWMTkySDI4OFYxNjhDMjg4IDE0OS4wOSAyNTguOTEgMTIwIDIzMCAxMjBIMTA4WiIgZmlsbD0iIzZCNzI4MCIvPgo8L3N2Zz4K'
-                          }}
-                        />
-
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
+                  </svg>
+                </button>
+              </div>
+              
+              <div
+                ref={sliderRef}
+                className="flex space-x-4 overflow-x-auto scrollbar-hide pb-2"
+                style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                onScroll={handleSliderScroll}
+              >
+                {filteredPlaces.map((place, index) => (
+                  <div
+                    key={place.id}
+                    onClick={() => {
+                      console.log('🏪 카드 클릭:', place.name, index)
+                      handleSliderItemClick(place, index)
+                    }}
+                    className={`flex-shrink-0 w-72 bg-gray-800 rounded-lg overflow-hidden cursor-pointer transition-all duration-200 ${
+                      selectedPlaceIndex === index
+                        ? 'ring-2 ring-blue-400 border-2 border-blue-400 scale-105' 
+                        : 'hover:bg-gray-700'
+                    }`}
+                  >
+                    <div className="relative">
+                      <img
+                        src={place.images?.[0] || '/placeholder-image.jpg'}
+                        alt={place.name}
+                        className="w-full h-32 object-cover"
+                        onError={(e) => {
+                          e.currentTarget.src = '/placeholder-image.jpg'
+                        }}
+                      />
+                      {/* 거리 표시 */}
+                      {place.distance && (
                         <div className="absolute top-2 right-2 bg-black bg-opacity-60 text-white text-xs px-2 py-1 rounded">
                           {place.distance}
                         </div>
+                      )}
+                    </div>
+                    
+                    <div className="p-3">
+                      <h4 className="font-medium text-sm mb-1 line-clamp-2">{place.name}</h4>
+                      <p className="text-xs text-gray-400 mb-2 line-clamp-1">
+                        {place.youtuberName || place.category}
+                      </p>
+                      
+                      <div className="flex items-center justify-between text-xs text-gray-500 mb-2">
+                        <span>⭐ {place.rating || 0}</span>
+                        <span>{place.tags?.length || 0}명 유튜버</span>
+                      </div>
+                      
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-xs text-gray-400">
+                          {place.viewCount || '조회수 정보 없음'}
+                        </span>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            console.log('❤️ 즐겨찾기 클릭:', place.id)
+                            handleFavoriteToggle(place.id)
+                          }}
+                          className={`p-1 rounded-full transition-colors ${
+                            place.isFavorite
+                              ? 'bg-pink-500 hover:bg-pink-600'
+                              : 'bg-gray-700 hover:bg-gray-600'
+                          }`}
+                        >
+                          <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                          </svg>
+                        </button>
                       </div>
 
-                      {/* 아래 정보영역 */}
-                      <div className="p-3">
-                        <h3 className="text-sm font-medium text-white mb-1 truncate">{place.name}</h3>
-                        <p className="text-xs text-gray-400 mb-2">{place.youtuberName}</p>
-                        <div className="flex items-center gap-2 text-xs text-gray-500 mb-2">
-                          <span>{place.viewCount}</span>
-                          <span>•</span>
-                          <span>{place.category}</span>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs bg-gradient-to-r from-pink-400 to-pink-500 text-white px-2 py-1 rounded">
-                            유튜버 {place.youtuberCount}명 방문
-                          </span>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              handleFavoriteToggle(place.id)
-                            }}
-                            className={`w-6 h-6 rounded-full flex items-center justify-center ${
-                              place.isFavorite 
-                                ? 'bg-gradient-to-r from-pink-400 to-pink-500' 
-                                : 'bg-gray-700 hover:bg-gray-600'
-                            }`}
-                          >
-                            <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 24 24">
-                              <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-                            </svg>
-                          </button>
-                        </div>
+                      {/* 버튼들 */}
+                      <div className="flex space-x-2">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            console.log('🗺️ 지도 이동 버튼 클릭:', place.name)
+                            handleSliderItemClick(place, index)
+                          }}
+                          className="flex-1 bg-blue-600 text-white text-xs py-1.5 px-3 rounded hover:bg-blue-700 transition-colors"
+                        >
+                          지도 이동
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            console.log('📋 상세 보기 버튼 클릭:', place.name)
+                            handlePlaceDetail(place)
+                          }}
+                          className="flex-1 bg-green-600 text-white text-xs py-1.5 px-3 rounded hover:bg-green-700 transition-colors"
+                        >
+                          상세 보기
+                        </button>
                       </div>
                     </div>
-                  ))}       
-
-                </div>
+                  </div>
+                ))}
               </div>
             </div>
           )}          
