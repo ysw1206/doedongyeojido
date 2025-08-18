@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useRef, useCallback } from 'react'
+import React, { useEffect, useRef, useCallback, useState } from 'react'
 
 interface Place {
   id: string
@@ -52,118 +52,131 @@ export default function MapContainer({
   const mapInstanceRef = useRef<any>(null)
   const clustererRef = useRef<any>(null)
   const markersRef = useRef<any[]>([])
+  const [isMounted, setIsMounted] = useState(false)
+
+  // 컴포넌트 마운트 확인
+  useEffect(() => {
+    setIsMounted(true)
+    console.log('🎯 MapContainer 마운트됨')
+  }, [])
 
   // 지도 초기화
   useEffect(() => {
-    // 클라이언트 사이드에서만 실행되도록 추가 체크
-    if (typeof window === 'undefined') {
-      console.log('❌ 서버 사이드에서 실행됨 - 스킵')
+    // 클라이언트 사이드 + 마운트 완료 체크
+    if (typeof window === 'undefined' || !isMounted) {
+      console.log('❌ 서버 사이드이거나 아직 마운트되지 않음')
       return
     }
 
-    console.log('🔍 지도 초기화 조건 체크:', {
-      pos: !!pos,
-      mapRefCurrent: !!mapRef.current,
-      isKakaoLoaded,
-      windowKakao: !!(window as any).kakao
-    })
-
-    if (!pos || !mapRef.current || !isKakaoLoaded) {
-      console.log('❌ 지도 초기화 조건 미충족:', { 
-        pos: !!pos, 
-        mapRef: !!mapRef.current, 
-        isKakaoLoaded 
-      })
-      return
-    }
-
-    if (!window.kakao || !window.kakao.maps || !window.kakao.maps.LatLng) {
-      console.log('❌ 카카오맵 API 객체가 준비되지 않았습니다.')
-      return
-    }
-
-    // 이미 지도가 초기화되어 있으면 중복 초기화 방지
-    if (mapInstanceRef.current) {
-      console.log('✅ 지도가 이미 초기화되어 있습니다.')
-      return
-    }
-
-    console.log('🚀 지도 초기화 시작', { pos })
-
-    try {
-      // LatLng 생성 테스트
-      const centerLatLng = new window.kakao.maps.LatLng(pos.lat, pos.lng)
-      console.log('LatLng 생성 성공:', centerLatLng)
-
-      const options = {
-        center: centerLatLng,
-        level: 3 // 레벨 3 (약 500m 반경)
-      }
-
-      const mapInstance = new window.kakao.maps.Map(mapRef.current, options)
-      console.log('지도 인스턴스 생성됨:', mapInstance)
-      
-      // 줌 레벨 변경 이벤트 등록
-      window.kakao.maps.event.addListener(mapInstance, 'zoom_changed', () => {
-        const level = mapInstance.getLevel()
-        console.log('줌 레벨 변경:', level)
+    // 짧은 지연 후 mapRef 재확인
+    const timeoutId = setTimeout(() => {
+      console.log('🔍 지도 초기화 조건 체크 (지연 후):', {
+        pos: !!pos,
+        mapRefCurrent: !!mapRef.current,
+        mapRefValue: mapRef.current,
+        isKakaoLoaded,
+        windowKakao: !!(window as any).kakao
       })
 
-      // 클러스터러 초기화 (MarkerClusterer가 있는 경우만)
-      let clustererInstance = null
-      if (window.kakao.maps.MarkerClusterer) {
-        clustererInstance = new window.kakao.maps.MarkerClusterer({
-          map: mapInstance,
-          averageCenter: true,
-          minLevel: 6, // 레벨 6 이상에서 클러스터링
-          disableClickZoom: true,
-          calculator: [10, 30, 50], // 클러스터 단계
-          styles: [
-            {
-              width: '30px',
-              height: '30px',
-              background: 'rgba(236, 72, 153, 0.8)',
-              borderRadius: '15px',
-              color: '#fff',
-              textAlign: 'center',
-              fontWeight: 'bold',
-              lineHeight: '30px'
-            },
-            {
-              width: '40px',
-              height: '40px',
-              background: 'rgba(236, 72, 153, 0.8)',
-              borderRadius: '20px',
-              color: '#fff',
-              textAlign: 'center',
-              fontWeight: 'bold',
-              lineHeight: '40px'
-            },
-            {
-              width: '50px',
-              height: '50px',
-              background: 'rgba(236, 72, 153, 0.8)',
-              borderRadius: '25px',
-              color: '#fff',
-              textAlign: 'center',
-              fontWeight: 'bold',
-              lineHeight: '50px'
-            }
-          ]
+      if (!pos || !mapRef.current || !isKakaoLoaded) {
+        console.log('❌ 지도 초기화 조건 미충족:', { 
+          pos: !!pos, 
+          mapRef: !!mapRef.current, 
+          isKakaoLoaded 
         })
-        console.log('클러스터러 생성됨:', clustererInstance)
-      } else {
-        console.warn('MarkerClusterer를 사용할 수 없습니다. 기본 마커만 사용합니다.')
+        return
       }
 
-      mapInstanceRef.current = mapInstance
-      clustererRef.current = clustererInstance
-      onMapReady(mapInstance)
-      
-    } catch (error) {
-      console.error('지도 초기화 중 오류:', error)
-    }
-  }, [pos, isKakaoLoaded]) // onMapReady 제거
+      if (!window.kakao || !window.kakao.maps || !window.kakao.maps.LatLng) {
+        console.log('❌ 카카오맵 API 객체가 준비되지 않았습니다.')
+        return
+      }
+
+      // 이미 지도가 초기화되어 있으면 중복 초기화 방지
+      if (mapInstanceRef.current) {
+        console.log('✅ 지도가 이미 초기화되어 있습니다.')
+        return
+      }
+
+      console.log('🚀 지도 초기화 시작', { pos })
+
+      try {
+        // LatLng 생성 테스트
+        const centerLatLng = new window.kakao.maps.LatLng(pos.lat, pos.lng)
+        console.log('LatLng 생성 성공:', centerLatLng)
+
+        const options = {
+          center: centerLatLng,
+          level: 3 // 레벨 3 (약 500m 반경)
+        }
+
+        const mapInstance = new window.kakao.maps.Map(mapRef.current, options)
+        console.log('✅ 지도 인스턴스 생성됨:', mapInstance)
+        
+        // 줌 레벨 변경 이벤트 등록
+        window.kakao.maps.event.addListener(mapInstance, 'zoom_changed', () => {
+          const level = mapInstance.getLevel()
+          console.log('줌 레벨 변경:', level)
+        })
+
+        // 클러스터러 초기화 (MarkerClusterer가 있는 경우만)
+        let clustererInstance = null
+        if (window.kakao.maps.MarkerClusterer) {
+          clustererInstance = new window.kakao.maps.MarkerClusterer({
+            map: mapInstance,
+            averageCenter: true,
+            minLevel: 6, // 레벨 6 이상에서 클러스터링
+            disableClickZoom: true,
+            calculator: [10, 30, 50], // 클러스터 단계
+            styles: [
+              {
+                width: '30px',
+                height: '30px',
+                background: 'rgba(236, 72, 153, 0.8)',
+                borderRadius: '15px',
+                color: '#fff',
+                textAlign: 'center',
+                fontWeight: 'bold',
+                lineHeight: '30px'
+              },
+              {
+                width: '40px',
+                height: '40px',
+                background: 'rgba(236, 72, 153, 0.8)',
+                borderRadius: '20px',
+                color: '#fff',
+                textAlign: 'center',
+                fontWeight: 'bold',
+                lineHeight: '40px'
+              },
+              {
+                width: '50px',
+                height: '50px',
+                background: 'rgba(236, 72, 153, 0.8)',
+                borderRadius: '25px',
+                color: '#fff',
+                textAlign: 'center',
+                fontWeight: 'bold',
+                lineHeight: '50px'
+              }
+            ]
+          })
+          console.log('클러스터러 생성됨:', clustererInstance)
+        } else {
+          console.warn('MarkerClusterer를 사용할 수 없습니다. 기본 마커만 사용합니다.')
+        }
+
+        mapInstanceRef.current = mapInstance
+        clustererRef.current = clustererInstance
+        onMapReady(mapInstance)
+        
+      } catch (error) {
+        console.error('❌ 지도 초기화 중 오류:', error)
+      }
+    }, 100) // 100ms 지연
+
+    return () => clearTimeout(timeoutId)
+  }, [pos, isKakaoLoaded, isMounted])
 
   // 마커 생성
   useEffect(() => {
@@ -230,13 +243,24 @@ export default function MapContainer({
     markersRef.current = newMarkers
   }, [places]) // onMarkerClick 제거
 
-  console.log('지도 초기화 조건 미충족:', { pos, mapRef: mapRef.current, isKakaoLoaded })
+  // DOM이 마운트되지 않았으면 로딩 표시
+  if (!isMounted) {
+    return (
+      <div className="relative flex-1 bg-gray-800 flex items-center justify-center">
+        <div className="text-white text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto mb-2"></div>
+          <p>지도 컨테이너 준비 중...</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="relative flex-1">
       <div
         ref={mapRef}
-        className="absolute inset-0 w-full h-full"
+        className="absolute inset-0 w-full h-full bg-gray-100"
+        style={{ minHeight: '400px' }} // 최소 높이 보장
       />
 
       {/* 줌 컨트롤 */}
