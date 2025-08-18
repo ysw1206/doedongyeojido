@@ -1,0 +1,45 @@
+{
+    "success": true,
+    "data": [
+      {
+        "id": "shorts1",
+        "title": "12000원에 이게 다 무제한이라고?😳",
+        "image": "https://img.youtube.com/vi/xZUaA5mmRl0/maxresdefault.jpg",
+        "duration": "13s",
+        "viewCount": "조회수 484,513회",
+        "videoId": "xZUaA5mmRl0",
+        "category": "한식",
+        "tags": ["무제한", "가성비", "한식"],
+        "createdAt": "2024-01-15T10:30:00Z"
+      },
+      {
+        "id": "shorts5",
+        "title": "이거 안보고 경주 여행가면 후회합니다",
+        "image": "https://img.youtube.com/vi/CCccRZ3nQMI/maxresdefault.jpg",
+        "duration": "56s",
+        "viewCount": "조회수 892,996회",
+        "videoId": "CCccRZ3nQMI",
+        "category": "한식",
+        "tags": ["경주", "여행", "로컬맛집"],
+        "createdAt": "2024-01-11T11:30:00Z"
+      },
+      {
+        "id": "shorts7",
+        "title": "대구 한식 맛집 추천합니다! 맛집TOP10",
+        "image": "https://img.youtube.com/vi/pTzYtwghCfI/maxresdefault.jpg",
+        "duration": "24s",
+        "viewCount": "조회수 43,783회",
+        "videoId": "pTzYtwghCfI",
+        "category": "한식",
+        "tags": ["대구", "한식", "TOP10"],
+        "createdAt": "2024-01-09T13:15:00Z"
+      }
+    ],
+    "pagination": {
+      "page": 1,
+      "limit": 8,
+      "total": 3,
+      "totalPages": 1
+    },
+    "message": "카테고리별 쇼츠 영상 목록을 성공적으로 조회했습니다."
+  }

@@ -71,6 +71,31 @@
         "description": "카테고리 목록 조회"
       }
     },
+    "/api/shorts": {
+      "GET": {
+        "enabled": true,
+        "dataFile": "/shorts/list.json",
+        "delay": 400,
+        "description": "쇼츠 영상 목록 조회"
+      }
+    },
+    "/api/shorts/popular": {
+      "GET": {
+        "enabled": true,
+        "dataFile": "/shorts/popular.json",
+        "delay": 300,
+        "description": "인기 쇼츠 영상 조회"
+      }
+    },
+    "/api/shorts/category/:category": {
+      "GET": {
+        "enabled": true,
+        "dataFile": "/shorts/category.json",
+        "delay": 400,
+        "description": "카테고리별 쇼츠 영상 조회",
+        "pattern": true
+      }
+    },
     "/api/users/favorites": {
       "GET": {
         "enabled": true,

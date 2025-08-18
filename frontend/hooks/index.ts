@@ -11,6 +11,9 @@ export * from './useFavorites';
 // 리뷰 관련 훅들
 export * from './useReviews';
 
+// 쇼츠 관련 훅들
+export * from './useShorts';
+
 // 기존 훅들도 re-export
 export * from './useLocalStorage';
 export * from './useTheme';

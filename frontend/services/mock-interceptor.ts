@@ -90,20 +90,31 @@ function findMatchingEndpoint(
   patternKey: string;
   config: MockEndpointConfig;
 } | null {
-  if (!mockConfig?.mockedEndpoints) return null;
+  if (!mockConfig?.mockedEndpoints) {
+    console.log('❌ No mock config or endpoints available');
+    return null;
+  }
 
   const upperMethod = method.toUpperCase();
   
   console.log('🔍 findMatchingEndpoint called:', { path, method: upperMethod });
+  console.log('🔍 Available endpoints:', Object.keys(mockConfig.mockedEndpoints));
 
   // 1. 정확한 경로 매칭 우선 시도 (패턴보다 우선)
   const exactMatch = mockConfig.mockedEndpoints[path];
-  if (exactMatch?.[upperMethod]?.enabled) {
-    console.log('✅ Exact match found:', path);
-    return {
-      patternKey: path,
-      config: exactMatch[upperMethod],
-    };
+  console.log('🔍 Checking exact match for:', path, 'Found:', !!exactMatch);
+  
+  if (exactMatch) {
+    console.log('🔍 Exact match config:', exactMatch);
+    console.log('🔍 Method config for', upperMethod, ':', exactMatch[upperMethod]);
+    
+    if (exactMatch[upperMethod]?.enabled) {
+      console.log('✅ Exact match found:', path);
+      return {
+        patternKey: path,
+        config: exactMatch[upperMethod],
+      };
+    }
   }
 
   // 2. 패턴 매칭 시도
@@ -152,7 +163,7 @@ function findMatchingEndpoint(
     }
   }
 
-  console.log('❌ No match found for:', { path, method: upperMethod });
+  console.log('❌ No matching endpoint found for:', { path, method: upperMethod });
   return null;
 }
 
@@ -166,7 +177,10 @@ export function shouldMockEndpoint(
   path: string,
   method: string = 'GET'
 ): boolean {
-  if (!mockConfig?.enabled) return false;
+  if (!mockConfig?.enabled) {
+    console.log('❌ Mock config not enabled');
+    return false;
+  }
 
   console.log('Full path:', path);
   console.log('Extracted base path:', extractBasePath(path));
@@ -174,7 +188,9 @@ export function shouldMockEndpoint(
   const basePath = extractBasePath(path);
   const match = findMatchingEndpoint(basePath, method);
 
-  return match !== null;
+  const shouldMock = match !== null;
+  console.log('🎭 Should mock result:', shouldMock);
+  return shouldMock;
 }
 
 /**
@@ -187,12 +203,22 @@ export function getMockDataPath(
   path: string,
   method: string = 'GET'
 ): string | null {
+  console.log('🔍 getMockDataPath called:', { path, method });
+  
   const basePath = extractBasePath(path);
+  console.log('🔍 Extracted base path:', basePath);
+  
   const match = findMatchingEndpoint(basePath, method);
+  console.log('🔍 findMatchingEndpoint result:', match);
 
-  if (!match) return null;
+  if (!match) {
+    console.log('❌ No match found in getMockDataPath');
+    return null;
+  }
 
-  return `mock-data${match.config.dataFile}`;
+  const dataPath = `mock-data${match.config.dataFile}`;
+  console.log('✅ Mock data path:', dataPath);
+  return dataPath;
 }
 
 /**
@@ -218,7 +244,7 @@ export function isMockingEnabled(): boolean {
 
 /**
  * 모킹 설정을 다시 로드합니다
- * @returns 새로운 모킹 설정
+ * @returns 다시 로드된 모킹 설정
  */
 export async function reloadMockConfig(): Promise<MockConfig> {
   mockConfig = null;
@@ -226,43 +252,62 @@ export async function reloadMockConfig(): Promise<MockConfig> {
 }
 
 /**
- * 현재 모킹 설정 정보를 가져옵니다
+ * 현재 로드된 모킹 설정 정보를 가져옵니다
  * @returns 모킹 설정 정보
  */
 export function getMockConfigInfo(): {
   enabled: boolean;
   endpointCount: number;
-  activeEndpoints: string[];
+  endpoints: string[];
 } {
-  if (!mockConfig) {
-    return {
-      enabled: false,
-      endpointCount: 0,
-      activeEndpoints: [],
-    };
-  }
+  return {
+    enabled: mockConfig?.enabled || false,
+    endpointCount: Object.keys(mockConfig?.mockedEndpoints || {}).length,
+    endpoints: Object.keys(mockConfig?.mockedEndpoints || {}),
+  };
+}
 
-  const activeEndpoints: string[] = [];
-  let endpointCount = 0;
+/**
+ * 엔드포인트별 모킹 설정 상세 정보를 가져옵니다
+ * @param path URL 경로
+ * @returns 해당 엔드포인트의 모킹 설정 정보
+ */
+export function getEndpointMockInfo(path: string): {
+  path: string;
+  exactMatch?: MockMethodConfig;
+  availableMethods: string[];
+  patternMatches: Array<{
+    pattern: string;
+    methods: string[];
+  }>;
+} {
+  const basePath = extractBasePath(path);
+  const exactMatch = mockConfig?.mockedEndpoints?.[basePath];
+  const availableMethods = exactMatch ? Object.keys(exactMatch) : [];
 
-  for (const [path, methodConfig] of Object.entries(
-    mockConfig.mockedEndpoints
-  )) {
-    const methodConfig_ = methodConfig as MockMethodConfig;
-    for (const [method, config] of Object.entries(methodConfig_)) {
-      if (config.enabled) {
-        activeEndpoints.push(`${method} ${path}`);
-        endpointCount++;
+  const patternMatches: Array<{ pattern: string; methods: string[] }> = [];
+
+  if (mockConfig?.mockedEndpoints) {
+    for (const [pattern, methodConfig] of Object.entries(mockConfig.mockedEndpoints)) {
+      if (pattern !== basePath) {
+        const methods = Object.entries(methodConfig)
+          .filter(([, config]) => config.enabled && config.pattern)
+          .map(([method]) => method);
+
+        if (methods.length > 0 && matchesPattern(basePath, pattern)) {
+          patternMatches.push({ pattern, methods });
+        }
       }
     }
   }
 
   return {
-    enabled: mockConfig.enabled,
-    endpointCount,
-    activeEndpoints,
+    path: basePath,
+    exactMatch,
+    availableMethods,
+    patternMatches,
   };
-} 
+}
 
 export function testPatternMatching(url: string, pattern: string): void {
   console.log('🧪 Testing pattern matching:');

@@ -1,0 +1,8 @@
+{
+    "success": true,
+    "data": {
+        "id": "place_001",
+        "deletedAt": "2024-01-15T15:00:00Z"
+    },
+    "message": "장소가 성공적으로 삭제되었습니다."
+}

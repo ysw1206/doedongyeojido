@@ -1,0 +1,37 @@
+
+  "success": true,
+  "data": {
+    "id": "place_001",
+    "name": "수정된 맛집 이름",
+    "description": "수정된 맛집 설명입니다.",
+    "address": "서울시 강남구 역삼동 123-45",
+    "category": "한식",
+    "images": [
+      "https://example.com/image1.jpg",
+      "https://example.com/image2.jpg"
+    ],
+    "coordinates": {
+      "lat": 37.5665,
+      "lng": 126.9780
+    },
+    "rating": 4.8,
+    "reviewCount": 127,
+    "tags": ["맛집", "데이트코스", "가족식사"],
+    "openingHours": {
+      "monday": "11:00-22:00",
+      "tuesday": "11:00-22:00",
+      "wednesday": "11:00-22:00",
+      "thursday": "11:00-22:00",
+      "friday": "11:00-23:00",
+      "saturday": "11:00-23:00",
+      "sunday": "12:00-21:00"
+    },
+    "contact": {
+      "phone": "02-1234-5678",
+      "website": "https://restaurant.example.com"
+    },
+    "createdAt": "2024-01-01T10:00:00Z",
+    "updatedAt": "2024-01-15T14:30:00Z"
+  },
+  "message": "장소 정보가 성공적으로 수정되었습니다."
+}

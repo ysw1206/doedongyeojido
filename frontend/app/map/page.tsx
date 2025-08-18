@@ -29,10 +29,10 @@ const KAKAO_MAP_API_KEY = process.env.NEXT_PUBLIC_KAKAO_MAP_API_KEY || 'b0b54392
 
 // 샘플 이미지 URL (안정적인 이미지 사용)
 const SAMPLE_IMAGES = [
-  'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=200&h=150&fit=crop&crop=center',
-  'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=200&h=150&fit=crop&crop=center',
-  'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=200&h=150&fit=crop&crop=center',
-  'https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=200&h=150&fit=crop&crop=center'
+  'https://img.youtube.com/vi/6e2qb_9w4TE/maxresdefault.jpg',
+  'https://img.youtube.com/vi/k9pte2X-4NA/maxresdefault.jpg',
+  'https://img.youtube.com/vi/lNW3omIZZW4/maxresdefault.jpg',
+  'https://img.youtube.com/vi/hbFzeLwe7yg/maxresdefault.jpg'
 ]
 
 // 샘플 맛집 데이터 생성 함수

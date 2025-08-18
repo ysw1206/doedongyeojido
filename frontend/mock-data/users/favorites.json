@@ -1,0 +1,50 @@
+{
+    "success": true,
+    "data": [
+      {
+        "id": "fav_001",
+        "placeId": "place_001",
+        "place": {
+          "id": "place_001",
+          "name": "맛있는 한식당",
+          "description": "전통 한식을 맛볼 수 있는 곳",
+          "address": "서울시 강남구 역삼동 123-45",
+          "category": "한식",
+          "images": ["https://example.com/place1.jpg"],
+          "coordinates": {
+            "lat": 37.5665,
+            "lng": 126.9780
+          },
+          "rating": 4.5,
+          "reviewCount": 89
+        },
+        "createdAt": "2024-01-10T10:00:00Z"
+      },
+      {
+        "id": "fav_002", 
+        "placeId": "place_002",
+        "place": {
+          "id": "place_002",
+          "name": "이탈리안 레스토랑",
+          "description": "정통 이탈리아 요리 전문점",
+          "address": "서울시 서초구 반포동 456-78",
+          "category": "양식",
+          "images": ["https://example.com/place2.jpg"],
+          "coordinates": {
+            "lat": 37.5047,
+            "lng": 127.0057
+          },
+          "rating": 4.7,
+          "reviewCount": 156
+        },
+        "createdAt": "2024-01-12T14:30:00Z"
+      }
+    ],
+    "pagination": {
+      "page": 1,
+      "limit": 10,
+      "total": 2,
+      "totalPages": 1
+    },
+    "message": "즐겨찾기 목록을 성공적으로 조회했습니다."
+  }

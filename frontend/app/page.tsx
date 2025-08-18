@@ -8,7 +8,7 @@ import PlaceCard from '@/components/place/PlaceCard'
 import ShortsSection from '@/components/shorts/ShortsSection'
 import Sidebar from '@/components/layout/Sidebar'
 import MobileFilterModal from '@/components/layout/MobileFilterModal'
-import { usePlaces, useCategories, usePopularPlaces } from '@/hooks'
+import { usePlaces, useCategories, usePopularPlaces, usePopularShorts } from '@/hooks'
 import { useFilterStore } from '@/stores/filterStore'
 
 export default function HomePage() {
@@ -44,6 +44,9 @@ export default function HomePage() {
   
   // 인기 장소도 가져오기 (홈페이지 상단용)
   const { places: popularPlaces } = usePopularPlaces(undefined, 8)
+
+  // 인기 쇼츠 영상 가져오기
+  const { shorts: popularShorts, isLoading: shortsLoading, error: shortsError } = usePopularShorts(8)
 
   // 필터 핸들러들
   const handleSearchChange = (query: string) => {
@@ -88,75 +91,6 @@ export default function HomePage() {
       </div>
     )
   }
-
-  const sampleShorts = [
-    {
-      "id": "shorts1",
-      "title": "12000원에 이게 다 무제한이라고?😳",
-      "image": "https://img.youtube.com/vi/xZUaA5mmRl0/maxresdefault.jpg",
-      "duration": "13s",
-      "viewCount": "조회수 484,513회",
-      "videoId": "xZUaA5mmRl0"
-    },
-    {
-      "id": "shorts2",
-      "title": "신세계 정용진 회장도 다녀간 아산 탕수육 맛집!",
-      "image": "https://img.youtube.com/vi/7DjJfMU3rM8/maxresdefault.jpg",
-      "duration": "18s",
-      "viewCount": "조회수 61,653회",
-      "videoId": "7DjJfMU3rM8"
-    },
-    {
-      "id": "shorts3",
-      "title": "쿠우쿠우 가지마세요 ㅠㅠ",
-      "image": "https://img.youtube.com/vi/IJAQjqOB5Kw/maxresdefault.jpg",
-      "duration": "29s",
-      "viewCount": "조회수 1,483,912회",
-      "videoId": "IJAQjqOB5Kw"
-    },
-    {
-      "id": "shorts4",
-      "title": "오사카 6일 29끼 찐맛집 족보정리",
-      "image": "https://img.youtube.com/vi/bVEWtDpZlP4/maxresdefault.jpg",
-      "duration": "16s",
-      "viewCount": "조회수 6,228,954회",
-      "videoId": "bVEWtDpZlP4"
-    },
-    {
-      "id": "shorts5",
-      "title": "이거 안보고 경주 여행가면 후회합니다",
-      "image": "https://img.youtube.com/vi/CCccRZ3nQMI/maxresdefault.jpg",
-      "duration": "56s",
-      "viewCount": "조회수 892,996회",
-      "videoId": "CCccRZ3nQMI"
-    },
-    {
-      "id": "shorts6",
-      "title": "70가지 요리가 무제한??",
-      "image": "https://img.youtube.com/vi/nJTUmZd4ox4/maxresdefault.jpg",
-      "duration": "27s",
-      "viewCount": "조회수 1,228,469회",
-      "videoId": "nJTUmZd4ox4"
-    },
-    {
-      "id": "shorts1",
-      "title": "대구 한식 맛집 추천합니다! 맛집TOP10",
-      "image": "https://img.youtube.com/vi/pTzYtwghCfI/maxresdefault.jpg",
-      "duration": "24s",
-      "viewCount": "조회수 43,783회",
-      "videoId": "pTzYtwghCfI"
-    },
-    {
-      "id": "shorts2",
-      "title": "도쿄 7박 30끼 찐맛집 족보정리",
-      "image": "https://img.youtube.com/vi/auzLDsEw74w/maxresdefault.jpg",
-      "duration": "15s",
-      "viewCount": "조회수 11,369,042회",
-      "videoId": "auzLDsEw74w"
-    }
-  ]
-
-  // 실제 데이터 사용 (API에서 이미 필터링됨)
 
   return (
     <>
@@ -221,7 +155,11 @@ export default function HomePage() {
             </div>
 
             {/* 숏츠 섹션 */}
-            <ShortsSection shorts={sampleShorts} />
+            <ShortsSection 
+              shorts={popularShorts} 
+              isLoading={shortsLoading}
+              error={shortsError}
+            />
 
             {/* 로딩 상태 */}
             {isLoading && (

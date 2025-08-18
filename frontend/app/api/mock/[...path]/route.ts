@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getMockDataPath, getMockDelay } from '@/services/mock-interceptor';
+import { getMockDataPath, getMockDelay, loadMockConfig, getMockConfigInfo } from '@/services/mock-interceptor';
 import fs from 'fs';
 import path from 'path';
 
@@ -18,15 +18,29 @@ async function handleMockRequest(
   console.log(`🎭 Mock API Request: ${method} ${mockPath}`);
 
   try {
+    // 모킹 설정 로드 확인
+    await loadMockConfig();
+    const configInfo = getMockConfigInfo();
+    console.log('🎭 Mock config info:', configInfo);
+
     // 모킹 데이터 파일 경로 가져오기
     const dataFilePath = getMockDataPath(mockPath, method);
+    console.log("method", method);
+    console.log("mockPath", mockPath);
+    console.log("dataFilePath", dataFilePath);
+    
     if (!dataFilePath) {
       console.log(`❌ No mock data found for: ${method} ${mockPath}`);
       return NextResponse.json(
         { 
           success: false, 
           error: 'Mock data not found',
-          message: `No mock configuration found for ${method} ${mockPath}`
+          message: `No mock configuration found for ${method} ${mockPath}`,
+          debug: {
+            availableEndpoints: configInfo.endpoints,
+            mockPath,
+            method
+          }
         },
         { status: 404 }
       );
@@ -39,7 +53,7 @@ async function handleMockRequest(
       await new Promise(resolve => setTimeout(resolve, delay));
     }
 
-    // 모킹 데이터 파일 읽기
+    // 모킹 데이터 파일 읽기 - 경로 수정 (frontend 중복 제거)
     const fullPath = path.join(process.cwd(), dataFilePath);
     console.log(`📁 Reading mock data from: ${fullPath}`);
 
@@ -82,18 +96,18 @@ async function handleMockRequest(
       { 
         success: false, 
         error: 'Internal server error',
-        message: 'Failed to process mock request'
+        message: error instanceof Error ? error.message : 'Unknown error'
       },
       { status: 500 }
     );
   }
 }
 
-// HTTP 메소드별 핸들러 함수들
+// HTTP 메서드별 핸들러 exports - params를 await로 처리
 export async function GET(
   request: NextRequest,
   context: { params: Promise<{ path: string[] }> }
-) {
+): Promise<NextResponse> {
   const params = await context.params;
   return handleMockRequest(request, params);
 }
@@ -101,7 +115,7 @@ export async function GET(
 export async function POST(
   request: NextRequest,
   context: { params: Promise<{ path: string[] }> }
-) {
+): Promise<NextResponse> {
   const params = await context.params;
   return handleMockRequest(request, params);
 }
@@ -109,15 +123,7 @@ export async function POST(
 export async function PUT(
   request: NextRequest,
   context: { params: Promise<{ path: string[] }> }
-) {
-  const params = await context.params;
-  return handleMockRequest(request, params);
-}
-
-export async function DELETE(
-  request: NextRequest,
-  context: { params: Promise<{ path: string[] }> }
-) {
+): Promise<NextResponse> {
   const params = await context.params;
   return handleMockRequest(request, params);
 }
@@ -125,7 +131,18 @@ export async function DELETE(
 export async function PATCH(
   request: NextRequest,
   context: { params: Promise<{ path: string[] }> }
-) {
+): Promise<NextResponse> {
   const params = await context.params;
   return handleMockRequest(request, params);
 }
+
+export async function DELETE(
+  request: NextRequest,
+  context: { params: Promise<{ path: string[] }> }
+): Promise<NextResponse> {
+  const params = await context.params;
+  return handleMockRequest(request, params);
+}
+
+// 개발 환경에서만 모킹 활성화
+export const dynamic = 'force-dynamic';

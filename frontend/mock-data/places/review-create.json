@@ -1,0 +1,17 @@
+{
+    "success": true,
+    "data": {
+        "id": "review_new_001",
+        "userId": "user_003",
+        "userName": "이새로운",
+        "userAvatar": "https://example.com/avatar3.jpg",
+        "rating": 5,
+        "content": "새로 작성한 리뷰입니다. 정말 좋았어요!",
+        "images": [
+            "https://example.com/new-review1.jpg"
+        ],
+        "createdAt": "2024-01-15T16:00:00Z",
+        "updatedAt": "2024-01-15T16:00:00Z"
+    },
+    "message": "리뷰가 성공적으로 작성되었습니다."
+}

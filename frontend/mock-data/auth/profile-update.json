@@ -1,0 +1,14 @@
+{
+    "success": true,
+    "data": {
+        "id": "user_001",
+        "name": "수정된 사용자",
+        "email": "updated@example.com",
+        "avatar": "https://example.com/updated-avatar.jpg",
+        "kakao_id": "12345678",
+        "phone": "010-9876-5432",
+        "created_at": "2024-01-01T10:00:00Z",
+        "updated_at": "2024-01-15T17:30:00Z"
+    },
+    "message": "프로필이 성공적으로 수정되었습니다."
+}

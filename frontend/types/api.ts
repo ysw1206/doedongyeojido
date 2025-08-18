@@ -205,3 +205,26 @@ export interface UserProfileUpdateRequest {
   phone?: string;
   avatar?: string;
 }
+
+// Shorts 관련 타입들
+export interface ShortsVideo {
+  id: string;
+  title: string;
+  image: string;
+  duration: string;
+  viewCount: string;
+  videoId: string;
+  category?: string;
+  tags?: string[];
+  createdAt?: string;
+}
+
+export interface ShortsListQuery {
+  category?: string;
+  limit?: number;
+  page?: number;
+  tags?: string[];
+}
+
+export interface ShortsResponse extends ApiResponse<ShortsVideo> {}
+export interface ShortsListResponse extends PaginatedResponse<ShortsVideo> {}

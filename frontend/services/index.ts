@@ -9,6 +9,9 @@ export * from './api';
 // 장소 관련 서비스
 export * from './placeService';
 
+// 쇼츠 관련 서비스
+export * from './shortsService';
+
 // 인증 관련 서비스
 export { default as authService } from './authService';
 export * from './authService';
@@ -36,6 +39,12 @@ export {
   fetchRecommendedPlaces,
   fetchPopularPlaces,
 } from './placeService';
+
+export {
+  fetchShorts,
+  fetchPopularShorts,
+  fetchShortsByCategory,
+} from './shortsService';
 
 // 타입들도 re-export
 export type * from '../types/api';
